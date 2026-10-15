@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Kiosco | Iniciar sesión</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container-fluid vh-100">
+        <div class="row h-100">
+
+            <div class="col-lg-6 login-panel d-flex flex-column justify-content-between p-5">
+                <div>
+                    <h1 class="fw-bold">Kiosco</h1>
+                    <p>Portal del empleado</p>
+                </div>
+
+                <div>
+                    <h2 class="fw-bold">Tu información laboral,<br>en un solo lugar.</h2>
+                    <p>Consulta tu nómina, vacaciones, documentos y más desde cualquier dispositivo.</p>
+                </div>
+
+                <p class="footer-text mb-0">Desarrollo Eslabón S.A. de C.V. &copy; 2026</p>
+            </div>
+
+            <div class="col-lg-6 login-form-side">
+                <div class="mx-auto" style="max-width: 420px; width: 100%;">
+
+                    <div id="loginView">
+                        <h2 class="fw-bold">Iniciar sesión</h2>
+                        <p class="text-secondary mb-4">Ingresa tu correo de empleado y contraseña</p>
+
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="employeeNumber" class="form-label">Correo de empleado</label>
+                                <input type="email" class="form-control" id="employeeNumber" placeholder="00124@empleado.com" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" placeholder="12345678" required>
+                            </div>
+
+                            <p id="loginError" class="text-danger small d-none">Correo de empleado o contraseña incorrectos.</p>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2">Continuar</button>
+
+                            <div class="text-center mt-3">
+                                <a href="#" class="text-decoration-none">Olvidé mi contraseña</a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="verifyView" class="d-none">
+                        <h2 class="fw-bold">Verificación de identidad</h2>
+                        <p class="text-secondary mb-4">Ingresa el código de 6 dígitos enviado a tu correo institucional</p>
+
+                        <div class="alert alert-primary" id="codeSentTo">
+                            Código enviado a c***@eslabon.com.mx
+                        </div>
+
+                        <form id="verifyForm">
+                            <div class="mb-4">
+                                <label for="verificationCode" class="form-label">Código de verificación</label>
+                                <input type="text" class="form-control text-center" id="verificationCode" placeholder="000000" maxlength="6" inputmode="numeric" required>
+                            </div>
+                            <p id="verifyError" class="text-danger small d-none"></p>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2">Verificar e ingresar</button>
+
+                            <div class="text-center mt-3">
+                                <a href="index.html" id="backToLogin" class="text-decoration-none">Volver al inicio de sesión</a>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../scripts/login.js"></script>
+</body>
+</html>

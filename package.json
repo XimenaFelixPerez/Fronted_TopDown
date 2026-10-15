@@ -1,0 +1,15 @@
+{
+  "name": "topdown-frontend",
+  "version": "1.0.0",
+  "description": "Frontend de Kiosco TopDown",
+  "scripts": {
+    "dev": "live-server --port=5173 --open=paginas/index.html",
+    "start": "live-server --port=5173 --open=paginas/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

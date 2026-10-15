@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Kiosco | Mi Nómina</title>
+    <link rel="stylesheet" href="../style.css">
+    <script src="../scripts/color.js"></script>
+    <script src="../scripts/notificaciones.js" defer></script>
+</head>
+<body>
+    <div class="d-flex">
+
+        <aside class="sidebar d-flex flex-column p-3">
+            <div class="mb-4">
+                <h4 class="fw-bold text-primary mb-0">Kiosco</h4>
+                <small class="text-secondary">Portal del empleado</small>
+            </div>
+
+            <ul class="nav nav-pills flex-column gap-1 flex-grow-1">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-grid-fill"></i> Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="nomina.html" class="nav-link active d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-text"></i> Mi Nómina
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="prestaciones.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-star"></i> Prestaciones
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="asistencia.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history"></i> Asistencia
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="documentos.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-folder"></i> Documentos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="desempeno.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-graph-up"></i> Mi Desempeño
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="comunidad.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-people"></i> Comunidad
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="familiares.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-people-fill"></i> Familiares
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="perfil.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-person"></i> Mi Perfil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="juego.html" class="nav-link d-flex align-items-center gap-2">
+                        <i class="bi bi-controller"></i> Zona de Juego
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-4">
+                <small class="text-secondary d-block mb-2">Color del portal</small>
+                <div class="d-flex gap-2">
+                    <button class="color-dot active" style="background:#2b4bd6" data-color="#2b4bd6" aria-label="Azul"></button>
+                    <button class="color-dot" style="background:#1fa855" data-color="#1fa855" aria-label="Verde"></button>
+                    <button class="color-dot" style="background:#e0338c" data-color="#e0338c" aria-label="Rosa"></button>
+                    <button class="color-dot" style="background:#f0932b" data-color="#f0932b" aria-label="Naranja"></button>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mt-4 pt-3 border-top">
+                <div class="avatar-circle">CM</div>
+                <div>
+                    <div class="fw-semibold small">Carlos Mendoza</div>
+                    <div class="text-secondary small">Emp. 00124</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content flex-grow-1">
+            <header class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                <h5 class="mb-0 fw-semibold">Mi Nómina</h5>
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-moon fs-5" id="btnTema" role="button"></i>
+                    <span class="position-relative" id="notifWrap">
+                        <i class="bi bi-bell fs-5" id="btnNotif" role="button"></i>
+                        <span class="notif-dot d-none" id="notifDot"></span>
+                        <span class="notif-panel d-none" id="notifPanel"></span>
+                    </span>
+                    <a href="index.html" class="text-secondary text-decoration-none small" onclick="fetch('http://' + (location.hostname || 'localhost') + ':3000/api/logout', { method: 'POST', credentials: 'include' }).finally(() => location.href = 'index.html'); return false;">Cerrar sesión</a>
+                </div>
+            </header>
+
+            <div class="p-4">
+                <h2 class="fw-bold mb-4">Mi Nómina</h2>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card-stat card-stat-highlight">
+                            <small>Salario neto</small>
+                            <div class="stat-value">$42,840.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card-stat">
+                            <small class="text-secondary">Salario bruto</small>
+                            <div class="stat-value text-dark">$48,000.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card-stat">
+                            <small class="text-secondary">Total deducciones</small>
+                            <div class="stat-value text-dark">$8,880.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card-stat">
+                            <small class="text-secondary">Próximo pago</small>
+                            <div class="stat-value text-dark">01 Sep 2026</div>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs kiosco-tabs mb-4" id="nominaTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-resumen" type="button">Resumen del periodo</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-historial" type="button">Historial de recibos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-deducciones" type="button">Mis deducciones</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+
+                    <div class="tab-pane fade show active" id="tab-resumen">
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <div class="panel p-0">
+                                    <div class="px-4 py-3 border-bottom">
+                                        <small class="text-secondary text-uppercase">Percepciones — Agosto 2026</small>
+                                    </div>
+                                    <div class="px-4">
+                                        <div class="d-flex justify-content-between py-3 border-bottom">
+                                            <span>Sueldo mensual</span><span>$45,000.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-3 border-bottom">
+                                            <span>Bono de productividad</span><span>$3,000.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-3 border-bottom">
+                                            <span>Subsidio al empleo</span><span>$840.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center fw-bold"
+                                        style="background-color: #e6e7e9; padding: 12px 16px; margin: 0 -23px; ">
+                                        <span>Total percepciones</span><span>$48,840.00</span>
+                                    </div>
+                                    </div>
+
+                                    <div class="px-4 py-3 border-bottom border-top">
+                                        <small class="text-secondary text-uppercase">Deducciones</small>
+                                    </div>
+                                    <div class="px-4">
+                                        <div class="d-flex justify-content-between py-3 border-bottom">
+                                            <span>IMSS cuota obrera</span><span class="text-danger">-$2,640.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-3 border-bottom">
+                                            <span>ISR retenido</span><span class="text-danger">-$5,280.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-3 border-bottom">
+                                            <span>INFONAVIT</span><span class="text-danger">-$960.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center fw-bold"
+                                        style="background-color: #e6e7e9; padding: 12px 16px; margin: 0 -23px; ">
+                                            <span>Total deducciones</span><span class="text-danger">-$8,880.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <div class="panel mb-3">
+                                    <h6 class="fw-bold mb-3">Composición del pago</h6>
+                                    <div class="progress mb-3" style="height: 10px;">
+                                        <div class="progress-bar" style="width: 88%; background: var(--portal-color);"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center small mb-2">
+                                        <span><span class="dot dot-active"></span> Pago neto</span><span>$42,840.00 (88%)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center small" ">
+                                        <span><span class="dot" style="background-color: #d1d9fd;"></span> Deducciones</span><span>$6,000.00 (12%)</span>
+                                    </div>
+                                </div>
+
+                                <div class="panel">
+                                    <h6 class="fw-bold mb-3">Datos fiscales</h6>
+                                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                                        <span class="text-secondary">RFC</span><span>MECC890412AB3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                                        <span class="text-secondary">CURP</span><span>MECC890412HDFRRL09</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                                        <span class="text-secondary">NSS</span><span>54321098765</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-2 small">
+                                        <span class="text-secondary">Régimen</span><span>Asalariado</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab-historial">
+
+                        <div id="historialLista" class="panel p-0">
+                            <table class="table tabla-limpia tabla-docs mb-0">
+                                <thead>
+                                    <tr class="text-secondary text-uppercase small">
+                                        <th>Periodo</th>
+                                        <th>Percepciones</th>
+                                        <th>Deducciones</th>
+                                        <th>Neto</th>
+                                        <th>Fecha de pago</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recibosBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="historialDetalle" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <a href="#" id="volverHistorial" class="text-decoration-none text-secondary">
+                                    <i class="bi bi-chevron-left"></i> Volver al historial
+                                </a>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm" id="btnImprimir">Imprimir</button>
+                                    <button class="btn btn-outline-secondary btn-sm" id="btnPdf">PDF</button>
+                                    <button class="btn btn-outline-secondary btn-sm" id="btnXml">XML</button>
+                                    <button class="btn btn-primary btn-sm" id="btnCorreo">Enviar por correo</button>
+                                </div>
+                            </div>
+
+                            <div class="panel mb-3">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <small class="text-secondary text-uppercase">Empresa</small>
+                                        <p class="fw-semibold mb-1 mt-1">Desarrollo Eslabón S.A. de C.V.</p>
+                                        <p class="small text-secondary mb-0">RFC: DES190801AB3</p>
+                                        <p class="small text-secondary mb-0">Reg. Patronal: Y45-83721-12</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-secondary text-uppercase">Empleado</small>
+                                        <p class="fw-semibold mb-1 mt-1">Carlos Mendoza Castillo</p>
+                                        <p class="small text-secondary mb-0">Núm. 00124 -; NSS: 54321098765</p>
+                                        <p class="small text-secondary mb-0">RFC: MECC890412AB3</p>
+                                        <p class="small text-secondary mb-0">Puesto: Desarrollador Sr.</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-secondary text-uppercase">Pago</small>
+                                        <p class="small mb-0 mt-1"><span class="text-secondary">Fecha:</span> <span id="detFecha">01 Sep 2026</span></p>
+                                        <p class="small mb-0"><span class="text-secondary">Periodo:</span> <span id="detPeriodo">Agosto 2026</span></p>
+                                        <p class="small mb-0"><span class="text-secondary">Tipo:</span> Nómina Normal</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel p-0">
+                                <table class="table tabla-limpia mb-0">
+                                    <thead>
+                                        <tr class="text-secondary text-uppercase small">
+                                            <th>Concepto</th>
+                                            <th>Percepciones</th>
+                                            <th>Deducciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Sueldo mensual</td><td class="text-success">$45,000.00</td><td>-</td></tr>
+                                        <tr><td>Bono de productividad</td><td class="text-success">$3,000.00</td><td>-</td></tr>
+                                        <tr><td>Subsidio al empleo</td><td class="text-success">$840.00</td><td>-</td></tr>
+                                        <tr><td>IMSS cuota obrera</td><td>-</td><td class="text-danger">$2,640.00</td></tr>
+                                        <tr><td>ISR retenido</td><td>-</td><td class="text-danger">$5,280.00</td></tr>
+                                        <tr><td>INFONAVIT</td><td>-</td><td class="text-danger">$960.00</td></tr>
+                                        <tr class="fw-bold fila-resaltada">
+                                            <td>Total</td><td class="text-success">$48,840.00</td><td class="text-danger">-$8,880.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="d-flex justify-content-between align-items-center px-4 py-3 barra-pago-neto">
+                                    <span class="fw-semibold">Pago neto</span>
+                                    <span class="fw-bold fs-5">$39,960.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab-deducciones">
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <div class="panel">
+                                    <small class="text-secondary text-uppercase d-block mb-3">Deducciones — Agosto 2026</small>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="fw-semibold">IMSS cuota obrera</span>
+                                            <span class="text-danger fw-semibold">-$2,640.00</span>
+                                        </div>
+                                        <small class="text-secondary">Cuota patronal 2026 - 5.5% del SBC</small>
+                                        <div class="progress mt-2" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 30%;"></div></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="fw-semibold">ISR retenido</span>
+                                            <span class="text-danger fw-semibold">-$5,280.00</span>
+                                        </div>
+                                        <small class="text-secondary">Tabla ISR mensual - Cálculo mensual</small>
+                                        <div class="progress mt-2" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 60%;"></div></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="fw-semibold">INFONAVIT</span>
+                                            <span class="text-danger fw-semibold">-$960.00</span>
+                                        </div>
+                                        <small class="text-secondary">Subcuenta vivienda - 2% del SBC</small>
+                                        <div class="progress mt-2" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 15%;"></div></div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between fw-bold pt-2 border-top">
+                                        <span>Total deducciones</span><span class="text-danger">-$8,880.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <div class="panel">
+                                    <h6 class="fw-bold mb-3">Acumulado anual 2026</h6>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span>IMSS cuota obrera</span><span>$21,120.00</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: 100%; background: var(--portal-color);"></div></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span>ISR retenido</span><span>$42,240.00</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: 100%; background: var(--portal-color);"></div></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span>INFONAVIT</span><span>$7,680.00</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: 100%; background: var(--portal-color);"></div></div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between fw-bold pt-2 border-top">
+                                        <span>Total deducido en el año</span><span class="text-danger">-$71,040.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div><div class="modal fade" id="modalPreview" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Vista previa del recibo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div id="reciboPreview" class="recibo-hoja"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-outline-primary" id="btnDescargarXml"><i class="bi bi-filetype-xml"></i> Descargar XML</button>
+                <button type="button" class="btn btn-primary" id="btnDescargar"><i class="bi bi-printer"></i> Imprimir / Guardar PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCorreo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enviar recibo por correo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary small mb-3">Recibo: <b id="correoPeriodo"></b></p>
+                <label for="correoDestino" class="form-label">Correo de destino</label>
+                <input type="email" class="form-control" id="correoDestino" placeholder="nombre@ejemplo.com" autocomplete="email">
+                <div id="correoMsg" class="small mt-2 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnEnviarCorreo">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../scripts/nomina.js"></script>
+</body>
+</html>
+
