@@ -1,6 +1,7 @@
-(function () {
+(async function () {
 const $ = (id) => document.getElementById(id);
-const COLS = { noticia: "noticias", evento: "eventos", fecha: "fechas", encuesta: "encuestas" };
+// Las noticias se administran en admin.html (van a la BD); aquí quedan eventos, fechas y encuestas
+const COLS = { evento: "eventos", fecha: "fechas", encuesta: "encuestas" };
 const NOMBRE = { noticia: "Noticia", evento: "Evento", fecha: "Fecha importante", encuesta: "Encuesta" };
 const ETQ = { publicado: "Publicado", borrador: "Borrador", activa: "Activa", inactiva: "Inactiva" };
 const ESTADO_SOL = { pendiente: "Pendiente", revision: "En revisión", aprobada: "Aprobada", rechazada: "Rechazada" };
@@ -81,8 +82,8 @@ function inscritos(id) { return Object.values(inscripciones()).filter((l) => l.i
 function renderPublico() {
     const c = leerC();
 
-    const lN = $("listaNoticias"); lN.innerHTML = "";
-    ordenar(c.noticias, -1).forEach((n) => {
+    /* Noticias: las pinta comunidad.js desde la BD (/api/noticias) */
+    if (false) ordenar(c.noticias, -1).forEach((n) => {
         const card = h("div", "panel mb-3"), fila = h("div", "d-flex align-items-center gap-3");
         const btn = h("button", "btn btn-link btn-sm p-0 enlace-portal", abiertas.has(n.id) ? "Cerrar" : "Leer");
         btn.onclick = () => { abiertas.has(n.id) ? abiertas.delete(n.id) : abiertas.add(n.id); renderPublico(); };
@@ -90,9 +91,7 @@ function renderPublico() {
                     h("small", "text-secondary numero text-nowrap", fechaTexto(n.fecha)), btn);
         card.append(fila);
         if (abiertas.has(n.id)) card.append(h("p", "text-secondary mt-3 mb-0", n.descripcion || ""));
-        lN.append(card);
     });
-    if (!lN.children.length) lN.append(h("p", "text-secondary", "No hay noticias publicadas."));
 
     // Eventos con inscripción
     const mias = inscripciones()[correoSesion()] || [];
@@ -141,22 +140,22 @@ function renderPublico() {
 }
 
 renderPublico();
-if (!rolSesion()) return; // usuarios normales: solo ven la información
+if (!(await cargarRolServidor())) return; // el SERVIDOR confirma si eres admin; si no, solo ves la información
 
 $("tabAdminLi").classList.remove("d-none");
 $("adminRoot").innerHTML = `
 <div class="d-flex justify-content-between align-items-start mb-3">
     <div>
-        <span class="tag-doc tag-reconocimiento">${rolSesion() === "rh" ? "Recursos Humanos" : "Marketing"}</span>
+        <span class="tag-doc tag-reconocimiento">Administrador</span>
         <small class="text-secondary ms-1">Vista administrativa</small>
         <h3 class="fw-bold mt-2 mb-1">Centro de administración</h3>
-        <div class="text-secondary">Gestiona comunicación interna${puede("solicitudes") ? " y solicitudes de empleados" : ""}.</div>
+        <div class="text-secondary">Gestiona eventos, fechas y encuestas. Las noticias se publican en <a href="admin.html" class="enlace-portal">Administrar</a>.</div>
     </div>
     <button class="btn btn-portal text-white fw-semibold" id="admNuevo">Agregar contenido</button>
 </div>
 <ul class="nav nav-tabs kiosco-tabs mb-4" id="admSub">
     <li class="nav-item"><button class="nav-link active" data-sub="resumen" type="button">Resumen</button></li>
-    <li class="nav-item"><button class="nav-link" data-sub="contenido" type="button">Noticias, eventos y encuestas</button></li>
+    <li class="nav-item"><button class="nav-link" data-sub="contenido" type="button">Eventos y encuestas</button></li>
     ${puede("solicitudes") ? '<li class="nav-item"><button class="nav-link" data-sub="solicitudes" type="button">Solicitudes <span class="badge-new" id="admBadge"></span></button></li>' : ""}
 </ul>
 <div id="admVista"></div>`;
@@ -167,7 +166,7 @@ document.body.insertAdjacentHTML("beforeend", `
     <div class="modal-header"><h5 class="modal-title" id="mTitulo"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body"><div class="row g-3">
       <div class="col-6"><label class="form-label small fw-semibold">Tipo</label><select class="form-select" id="mTipo">
-        <option value="noticia">Noticia</option><option value="evento">Evento</option><option value="fecha">Fecha importante</option><option value="encuesta">Encuesta</option></select></div>
+        <option value="evento">Evento</option><option value="fecha">Fecha importante</option><option value="encuesta">Encuesta</option></select></div>
       <div class="col-6"><label class="form-label small fw-semibold">Estado</label><select class="form-select" id="mEstado"></select></div>
       <div class="col-12"><label class="form-label small fw-semibold">Título</label><input class="form-control" id="mNombre" maxlength="120"></div>
       <div class="col-6"><label class="form-label small fw-semibold">Fecha</label><input type="date" class="form-control" id="mFecha"></div>
@@ -234,17 +233,16 @@ function renderAdmin() {
             puede("solicitudes") ? ["Solicitudes pendientes", pend, "Requieren atención"] : ["Fechas publicadas", c.fechas.filter((x) => x.estado !== "borrador").length, "Fechas importantes"],
             ["Encuestas activas", c.encuestas.filter((x) => x.estado === "activa").length, "Consulta respuestas"],
             ["Eventos publicados", c.eventos.filter((x) => x.estado !== "borrador").length, "Gestiona inscripciones"],
-            ["Noticias publicadas", c.noticias.filter((x) => x.estado !== "borrador").length, "Comunicación interna"],
-        ];
+            ];
         const row = h("div", "row g-3 mb-4");
         stats.forEach(([t, n, s]) => {
-            const col = h("div", "col-md-3"), card = h("div", "card-stat");
+            const col = h("div", "col-md-4"), card = h("div", "card-stat");
             card.append(h("small", "text-secondary", t), h("div", "stat-value text-dark", String(n)), h("small", "text-secondary", s));
             col.append(card); row.append(col);
         });
         vista.append(row);
         const panel = h("div", "panel"), cab = h("div", "d-flex justify-content-between align-items-start mb-2");
-        const izq = h("div"); izq.append(h("h6", "fw-bold mb-0", "Comunicación reciente"), h("small", "text-secondary", "Noticias, eventos y encuestas en un solo lugar"));
+        const izq = h("div"); izq.append(h("h6", "fw-bold mb-0", "Comunicación reciente"), h("small", "text-secondary", "Eventos y encuestas en un solo lugar"));
         const ver = h("button", "btn btn-link btn-sm p-0 enlace-portal", "Administrar todo");
         ver.onclick = () => { sub = "contenido"; renderAdmin(); };
         cab.append(izq, ver); panel.append(cab);
@@ -258,9 +256,9 @@ function renderAdmin() {
 
     if (sub === "contenido") {
         const cab = h("div", "d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2");
-        const t = h("div"); t.append(h("h6", "fw-bold mb-0", "Contenido interno"), h("small", "text-secondary", "Crea y modifica noticias, eventos, fechas y encuestas desde la misma vista."));
+        const t = h("div"); t.append(h("h6", "fw-bold mb-0", "Contenido interno"), h("small", "text-secondary", "Crea y modifica eventos, fechas y encuestas desde la misma vista."));
         const seg = h("div", "segmentado");
-        [["todo", "Todo"], ["noticia", "Noticias"], ["evento", "Eventos"], ["fecha", "Fechas"], ["encuesta", "Encuestas"]].forEach(([v, n]) => {
+        [["todo", "Todo"], ["evento", "Eventos"], ["fecha", "Fechas"], ["encuesta", "Encuestas"]].forEach(([v, n]) => {
             const b = h("button", filtro === v ? "activo" : "", n); b.type = "button";
             b.onclick = () => { filtro = v; renderAdmin(); }; seg.append(b);
         });
@@ -350,7 +348,7 @@ function abrirForm(tipo, item) {
     $("mError").classList.add("d-none");
     mAdmin.show();
 }
-$("admNuevo").onclick = () => abrirForm("noticia", null);
+$("admNuevo").onclick = () => abrirForm("evento", null);
 const errorForm = (t) => { $("mError").textContent = t; $("mError").classList.remove("d-none"); };
 
 $("mGuardar").addEventListener("click", () => {

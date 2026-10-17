@@ -9,6 +9,8 @@
     <title>Kiosco | Inicio</title>
     <link rel="stylesheet" href="../style.css">
     <script src="../scripts/color.js"></script>
+    <script src="../scripts/guard.js"></script>
+    <script src="../scripts/api.js"></script>
     <script src="../scripts/notificaciones.js" defer></script>
 </head>
 <body>
@@ -107,24 +109,24 @@
             </header>
 
             <div class="p-4">
-                <p class="text-secondary mb-1">Miércoles, 27 de agosto de 2026</p>
-                <h2 class="fw-bold mb-1">Bienvenido, Carlos</h2>
-                <p class="text-secondary mb-4">Desarrollador Sr. - Tecnología - Ingreso: 15 Mar 2021 - Antigüedad: 5 años 5 meses</p>
+                <p class="text-secondary mb-1" id="fechaHoy">Miércoles, 27 de agosto de 2026</p>
+                <h2 class="fw-bold mb-1">Bienvenido, <span id="nombreCorto">Carlos</span></h2>
+                <p class="text-secondary mb-4" id="resumenEmpleado">Desarrollador Sr. - Tecnología - Ingreso: 15 Mar 2021 - Antigüedad: 5 años 5 meses</p>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
                         <div class="card-stat card-stat-highlight">
                             <small>Próximo pago</small>
-                            <div class="stat-value">$42,840.00</div>
-                            <small>01 Sep 2026</small>
+                            <div class="stat-value" id="pagoNeto">$42,840.00</div>
+                            <small id="pagoFecha">01 Sep 2026</small>
                             <a href="Nomina.html" class="stat-link">Ver detalle</a>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card-stat">
                             <small class="text-secondary">Salario bruto</small>
-                            <div class="stat-value text-dark">$48,000.00</div>
-                            <small class="text-secondary">Agosto 2026</small>
+                            <div class="stat-value text-dark" id="salarioBruto">$48,000.00</div>
+                            <small class="text-secondary" id="salarioMes">Agosto 2026</small>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -153,20 +155,7 @@
                     <div class="col-md-5">
                         <div class="panel h-100">
                             <h6 class="fw-bold mb-3">Próximos eventos</h6>
-                            <ul class="list-unstyled">
-                                <li class="d-flex gap-3 py-2 border-bottom">
-                                    <span class="event-date">01 Sep</span> Día de pago — Agosto 2026
-                                </li>
-                                <li class="d-flex gap-3 py-2 border-bottom">
-                                    <span class="event-date">16 Sep</span> Día de la Independencia (día festivo)
-                                </li>
-                                <li class="d-flex gap-3 py-2 border-bottom">
-                                    <span class="event-date">20 Sep</span> Encuesta de clima laboral — cierre
-                                </li>
-                                <li class="d-flex gap-3 py-2">
-                                    <span class="event-date">25 Sep</span> Cierre de periodo — Septiembre 2026
-                                </li>
-                            </ul>
+                            <ul class="list-unstyled" id="listaEventos"></ul>
                         </div>
                     </div>
                 </div>
@@ -174,7 +163,7 @@
                 <div class="panel">
                     <h6 class="fw-bold mb-3">Accesos rápidos</h6>
                     <div class="row g-2">
-                        <div class="col-md-2 col-6"><a href="nomina.html" class="btn btn-quick w-100">Descargar recibo</a></div>
+                        <div class="col-md-2 col-6"><a href="Nomina.html" class="btn btn-quick w-100">Descargar recibo</a></div>
                         <div class="col-md-2 col-6"><a href="prestaciones.html" class="btn btn-quick w-100">Solicitar vacaciones</a></div>
                         <div class="col-md-2 col-6"><a href="asistencia.html" class="btn btn-quick w-100">Ver asistencia</a></div>
                         <div class="col-md-2 col-6"><a href="documentos.html" class="btn btn-quick w-100">Mis documentos</a></div>
@@ -187,7 +176,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="../scripts/dashboard.js"></script>
 </body>
 </html>
-

@@ -1,17 +1,17 @@
-const iniciarNotificaciones = () => {
+const iniciarNotificaciones = async () => {
+  if (typeof api === 'undefined') return;   // la página no cargó api.js
+
   const btnNotif = document.getElementById('btnNotif');
   const notifDot = document.getElementById('notifDot');
   const notifPanel = document.getElementById('notifPanel');
   const listaNotif = document.getElementById('listaNotif');
 
-  const base = [
-    { Id: 1, Texto: 'Tu recibo de nómina de agosto ya está disponible', Leida: false },
-    { Id: 2, Texto: 'Tienes 2 encuestas pendientes por responder', Leida: false },
-    { Id: 3, Texto: 'Tu solicitud de vacaciones fue autorizada', Leida: true }
-  ];
-
-  const guardadas = JSON.parse(localStorage.getItem('notifLeidas') || '[]');
-  const notificaciones = base.map(n => ({ ...n, Leida: n.Leida || guardadas.includes(n.Id) }));
+  let notificaciones = [];
+  try {
+    notificaciones = (await api('/notificaciones')).notificaciones;
+  } catch (e) {
+    console.error('No se pudieron cargar las notificaciones', e);
+  }
 
   const render = () => {
     notifDot.classList.toggle('d-none', !notificaciones.some(n => !n.Leida));
@@ -31,23 +31,25 @@ const iniciarNotificaciones = () => {
       </li>`).join('');
   };
 
-  const marcarLeida = (e) => {
+  const marcarLeida = async (e) => {
     const item = e.target.closest('[data-id]');
     if (!item) return;
     e.preventDefault();
     const n = notificaciones.find(x => x.Id === Number(item.dataset.id));
     if (!n || n.Leida) return;
     n.Leida = true;
-    localStorage.setItem('notifLeidas', JSON.stringify(notificaciones.filter(x => x.Leida).map(x => x.Id)));
     render();
+    try {
+      await api(`/notificaciones/${n.Id}/leida`, { method: 'PATCH' });
+    } catch (err) {
+      console.error('No se pudo guardar la lectura', err);
+    }
   };
 
   btnNotif.addEventListener('click', () => notifPanel.classList.toggle('d-none'));
-
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#notifWrap')) notifPanel.classList.add('d-none');
   });
-
   notifPanel.addEventListener('click', marcarLeida);
   if (listaNotif) listaNotif.addEventListener('click', marcarLeida);
 

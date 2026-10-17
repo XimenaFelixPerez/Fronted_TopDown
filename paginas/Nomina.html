@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,11 +10,13 @@
     <title>Kiosco | Mi Nómina</title>
     <link rel="stylesheet" href="../style.css">
     <script src="../scripts/color.js"></script>
+    <script src="../scripts/guard.js"></script>
+    <script src="../scripts/api.js"></script>
     <script src="../scripts/notificaciones.js" defer></script>
 </head>
+
 <body>
     <div class="d-flex">
-
         <aside class="sidebar d-flex flex-column p-3">
             <div class="mb-4">
                 <h4 class="fw-bold text-primary mb-0">Kiosco</h4>
@@ -102,7 +105,10 @@
                         <span class="notif-dot d-none" id="notifDot"></span>
                         <span class="notif-panel d-none" id="notifPanel"></span>
                     </span>
-                    <a href="index.html" class="text-secondary text-decoration-none small" onclick="fetch('http://' + (location.hostname || 'localhost') + ':3000/api/logout', { method: 'POST', credentials: 'include' }).finally(() => location.href = 'index.html'); return false;">Cerrar sesión</a>
+                    <a href="index.html" class="text-secondary text-decoration-none small"
+                       onclick="fetch('http://' + (location.hostname || 'localhost') + ':3000/api/logout', { method: 'POST', credentials: 'include' }).finally(() => location.href = 'index.html'); return false;">
+                        Cerrar sesión
+                    </a>
                 </div>
             </header>
 
@@ -113,122 +119,53 @@
                     <div class="col-md-3">
                         <div class="card-stat card-stat-highlight">
                             <small>Salario neto</small>
-                            <div class="stat-value">$42,840.00</div>
+                            <div class="stat-value" id="cNeto">$42,840.00</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card-stat">
                             <small class="text-secondary">Salario bruto</small>
-                            <div class="stat-value text-dark">$48,000.00</div>
+                            <div class="stat-value text-dark" id="cBruto">$48,000.00</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card-stat">
                             <small class="text-secondary">Total deducciones</small>
-                            <div class="stat-value text-dark">$8,880.00</div>
+                            <div class="stat-value text-dark" id="cDed">$8,880.00</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card-stat">
                             <small class="text-secondary">Próximo pago</small>
-                            <div class="stat-value text-dark">01 Sep 2026</div>
+                            <div class="stat-value text-dark" id="cProx">01 Sep 2026</div>
                         </div>
                     </div>
                 </div>
 
                 <ul class="nav nav-tabs kiosco-tabs mb-4" id="nominaTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-resumen" type="button">Resumen del periodo</button>
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-resumen" type="button">
+                            Resumen del periodo
+                        </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-historial" type="button">Historial de recibos</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-historial" type="button">
+                            Historial de recibos
+                        </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-deducciones" type="button">Mis deducciones</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-deducciones" type="button">
+                            Mis deducciones
+                        </button>
                     </li>
                 </ul>
 
                 <div class="tab-content">
-
                     <div class="tab-pane fade show active" id="tab-resumen">
-                        <div class="row g-3">
-                            <div class="col-md-7">
-                                <div class="panel p-0">
-                                    <div class="px-4 py-3 border-bottom">
-                                        <small class="text-secondary text-uppercase">Percepciones — Agosto 2026</small>
-                                    </div>
-                                    <div class="px-4">
-                                        <div class="d-flex justify-content-between py-3 border-bottom">
-                                            <span>Sueldo mensual</span><span>$45,000.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between py-3 border-bottom">
-                                            <span>Bono de productividad</span><span>$3,000.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between py-3 border-bottom">
-                                            <span>Subsidio al empleo</span><span>$840.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center fw-bold"
-                                        style="background-color: #e6e7e9; padding: 12px 16px; margin: 0 -23px; ">
-                                        <span>Total percepciones</span><span>$48,840.00</span>
-                                    </div>
-                                    </div>
-
-                                    <div class="px-4 py-3 border-bottom border-top">
-                                        <small class="text-secondary text-uppercase">Deducciones</small>
-                                    </div>
-                                    <div class="px-4">
-                                        <div class="d-flex justify-content-between py-3 border-bottom">
-                                            <span>IMSS cuota obrera</span><span class="text-danger">-$2,640.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between py-3 border-bottom">
-                                            <span>ISR retenido</span><span class="text-danger">-$5,280.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between py-3 border-bottom">
-                                            <span>INFONAVIT</span><span class="text-danger">-$960.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center fw-bold"
-                                        style="background-color: #e6e7e9; padding: 12px 16px; margin: 0 -23px; ">
-                                            <span>Total deducciones</span><span class="text-danger">-$8,880.00</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5">
-                                <div class="panel mb-3">
-                                    <h6 class="fw-bold mb-3">Composición del pago</h6>
-                                    <div class="progress mb-3" style="height: 10px;">
-                                        <div class="progress-bar" style="width: 88%; background: var(--portal-color);"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small mb-2">
-                                        <span><span class="dot dot-active"></span> Pago neto</span><span>$42,840.00 (88%)</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small" ">
-                                        <span><span class="dot" style="background-color: #d1d9fd;"></span> Deducciones</span><span>$6,000.00 (12%)</span>
-                                    </div>
-                                </div>
-
-                                <div class="panel">
-                                    <h6 class="fw-bold mb-3">Datos fiscales</h6>
-                                    <div class="d-flex justify-content-between py-2 border-bottom small">
-                                        <span class="text-secondary">RFC</span><span>MECC890412AB3</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between py-2 border-bottom small">
-                                        <span class="text-secondary">CURP</span><span>MECC890412HDFRRL09</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between py-2 border-bottom small">
-                                        <span class="text-secondary">NSS</span><span>54321098765</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between py-2 small">
-                                        <span class="text-secondary">Régimen</span><span>Asalariado</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <div id="resumenContenido"></div>
                     </div>
 
                     <div class="tab-pane fade" id="tab-historial">
-
                         <div id="historialLista" class="panel p-0">
                             <table class="table tabla-limpia tabla-docs mb-0">
                                 <thead>
@@ -258,29 +195,7 @@
                                 </div>
                             </div>
 
-                            <div class="panel mb-3">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <small class="text-secondary text-uppercase">Empresa</small>
-                                        <p class="fw-semibold mb-1 mt-1">Desarrollo Eslabón S.A. de C.V.</p>
-                                        <p class="small text-secondary mb-0">RFC: DES190801AB3</p>
-                                        <p class="small text-secondary mb-0">Reg. Patronal: Y45-83721-12</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <small class="text-secondary text-uppercase">Empleado</small>
-                                        <p class="fw-semibold mb-1 mt-1">Carlos Mendoza Castillo</p>
-                                        <p class="small text-secondary mb-0">Núm. 00124 -; NSS: 54321098765</p>
-                                        <p class="small text-secondary mb-0">RFC: MECC890412AB3</p>
-                                        <p class="small text-secondary mb-0">Puesto: Desarrollador Sr.</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <small class="text-secondary text-uppercase">Pago</small>
-                                        <p class="small mb-0 mt-1"><span class="text-secondary">Fecha:</span> <span id="detFecha">01 Sep 2026</span></p>
-                                        <p class="small mb-0"><span class="text-secondary">Periodo:</span> <span id="detPeriodo">Agosto 2026</span></p>
-                                        <p class="small mb-0"><span class="text-secondary">Tipo:</span> Nómina Normal</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="panel mb-3" id="detCabecera"></div>
 
                             <div class="panel p-0">
                                 <table class="table tabla-limpia mb-0">
@@ -291,142 +206,69 @@
                                             <th>Deducciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr><td>Sueldo mensual</td><td class="text-success">$45,000.00</td><td>-</td></tr>
-                                        <tr><td>Bono de productividad</td><td class="text-success">$3,000.00</td><td>-</td></tr>
-                                        <tr><td>Subsidio al empleo</td><td class="text-success">$840.00</td><td>-</td></tr>
-                                        <tr><td>IMSS cuota obrera</td><td>-</td><td class="text-danger">$2,640.00</td></tr>
-                                        <tr><td>ISR retenido</td><td>-</td><td class="text-danger">$5,280.00</td></tr>
-                                        <tr><td>INFONAVIT</td><td>-</td><td class="text-danger">$960.00</td></tr>
-                                        <tr class="fw-bold fila-resaltada">
-                                            <td>Total</td><td class="text-success">$48,840.00</td><td class="text-danger">-$8,880.00</td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="detConceptos"></tbody>
                                 </table>
                                 <div class="d-flex justify-content-between align-items-center px-4 py-3 barra-pago-neto">
                                     <span class="fw-semibold">Pago neto</span>
-                                    <span class="fw-bold fs-5">$39,960.00</span>
+                                    <span class="fw-bold fs-5" id="detNeto">$39,960.00</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="tab-deducciones">
-                        <div class="row g-3">
-                            <div class="col-md-7">
-                                <div class="panel">
-                                    <small class="text-secondary text-uppercase d-block mb-3">Deducciones — Agosto 2026</small>
-
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-semibold">IMSS cuota obrera</span>
-                                            <span class="text-danger fw-semibold">-$2,640.00</span>
-                                        </div>
-                                        <small class="text-secondary">Cuota patronal 2026 - 5.5% del SBC</small>
-                                        <div class="progress mt-2" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 30%;"></div></div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-semibold">ISR retenido</span>
-                                            <span class="text-danger fw-semibold">-$5,280.00</span>
-                                        </div>
-                                        <small class="text-secondary">Tabla ISR mensual - Cálculo mensual</small>
-                                        <div class="progress mt-2" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 60%;"></div></div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-semibold">INFONAVIT</span>
-                                            <span class="text-danger fw-semibold">-$960.00</span>
-                                        </div>
-                                        <small class="text-secondary">Subcuenta vivienda - 2% del SBC</small>
-                                        <div class="progress mt-2" style="height: 6px;"><div class="progress-bar bg-danger" style="width: 15%;"></div></div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between fw-bold pt-2 border-top">
-                                        <span>Total deducciones</span><span class="text-danger">-$8,880.00</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5">
-                                <div class="panel">
-                                    <h6 class="fw-bold mb-3">Acumulado anual 2026</h6>
-
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span>IMSS cuota obrera</span><span>$21,120.00</span>
-                                        </div>
-                                        <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: 100%; background: var(--portal-color);"></div></div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span>ISR retenido</span><span>$42,240.00</span>
-                                        </div>
-                                        <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: 100%; background: var(--portal-color);"></div></div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span>INFONAVIT</span><span>$7,680.00</span>
-                                        </div>
-                                        <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: 100%; background: var(--portal-color);"></div></div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between fw-bold pt-2 border-top">
-                                        <span>Total deducido en el año</span><span class="text-danger">-$71,040.00</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <div id="deduccionesContenido"></div>
                     </div>
-
                 </div>
             </div>
         </main>
-    </div><div class="modal fade" id="modalPreview" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Vista previa del recibo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body bg-light">
-                <div id="reciboPreview" class="recibo-hoja"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-outline-primary" id="btnDescargarXml"><i class="bi bi-filetype-xml"></i> Descargar XML</button>
-                <button type="button" class="btn btn-primary" id="btnDescargar"><i class="bi bi-printer"></i> Imprimir / Guardar PDF</button>
-            </div>
-        </div>
     </div>
-</div>
 
-<div class="modal fade" id="modalCorreo" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Enviar recibo por correo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-secondary small mb-3">Recibo: <b id="correoPeriodo"></b></p>
-                <label for="correoDestino" class="form-label">Correo de destino</label>
-                <input type="email" class="form-control" id="correoDestino" placeholder="nombre@ejemplo.com" autocomplete="email">
-                <div id="correoMsg" class="small mt-2 d-none"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnEnviarCorreo">Enviar</button>
+    <div class="modal fade" id="modalPreview" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Vista previa del recibo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div id="reciboPreview" class="recibo-hoja"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-outline-primary" id="btnDescargarXml">
+                        <i class="bi bi-filetype-xml"></i> Descargar XML
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnDescargar">
+                        <i class="bi bi-printer"></i> Imprimir / Guardar PDF
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <div class="modal fade" id="modalCorreo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Enviar recibo por correo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">Recibo: <b id="correoPeriodo"></b></p>
+                    <label for="correoDestino" class="form-label">Correo de destino</label>
+                    <input type="email" class="form-control" id="correoDestino" placeholder="nombre@ejemplo.com" autocomplete="email">
+                    <div id="correoMsg" class="small mt-2 d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnEnviarCorreo">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../scripts/nomina.js"></script>
 </body>
 </html>
-

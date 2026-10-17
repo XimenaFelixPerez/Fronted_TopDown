@@ -28,8 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pintarIcono();
 });
 
-
-
 const colorGuardado = localStorage.getItem(COLOR_KEY) || COLOR_DEFECTO;
 document.documentElement.style.setProperty("--portal-color", colorGuardado);
 
@@ -50,9 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// Enlace "Administrar" en el menú: solo aparece si el SERVIDOR confirma que eres admin
 document.addEventListener("DOMContentLoaded", async function () {
     var menu = document.querySelector(".sidebar .nav");
-    if (!menu) return;
+    if (!menu || menu.querySelector('a[href="admin.html"]')) return;
     try {
         var host = window.location.hostname || "localhost";
         var r = await fetch("http://" + host + ":3000/api/admin/yo", { credentials: "include" });
@@ -60,9 +59,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!datos.ok) return;
     } catch (e) { return; }
 
+    var enAdmin = /admin\.html$/i.test(location.pathname);
     var li = document.createElement("li");
     li.className = "nav-item";
-    li.innerHTML = '<a href="admin.html" class="nav-link d-flex align-items-center gap-2">' +
-                   '<i class="bi bi-pencil-square"></i> Administrar</a>';
+    li.innerHTML = '<a href="admin.html" class="nav-link' + (enAdmin ? " active" : "") +
+                   ' d-flex align-items-center gap-2"><i class="bi bi-shield-lock"></i> Administrar</a>';
     menu.appendChild(li);
 });
