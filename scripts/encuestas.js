@@ -1,76 +1,51 @@
 (function () {
-const encuestas = [
-    {
-        id: "clima",
-        titulo: "Encuesta de clima laboral",
-        descripcion: "Cuéntanos cómo te sientes en tu día a día.",
-        cierre: "20 Sep 2026",
-        preguntas: [
-            { id: "p1", tipo: "escala", texto: "¿Qué tan satisfecho estás con tu ambiente de trabajo?", obligatoria: true },
-            { id: "p2", tipo: "opcion", texto: "¿Cómo describirías la comunicación con tu líder?", obligatoria: true,
-              opciones: ["Excelente", "Buena", "Regular", "Mala"] },
-            { id: "p3", tipo: "multiple", texto: "¿Qué aspectos mejorarías? (puedes elegir varios)", obligatoria: false,
-              opciones: ["Horarios", "Herramientas", "Capacitación", "Reconocimiento", "Espacios de trabajo"] },
-            { id: "p4", tipo: "texto", texto: "¿Algún comentario o sugerencia?", obligatoria: false },
-        ],
-    },
-    {
-        id: "capacitacion",
-        titulo: "Evaluación de capacitación",
-        descripcion: "Ayúdanos a mejorar los cursos internos.",
-        cierre: "30 Sep 2026",
-        preguntas: [
-            { id: "p1", tipo: "escala", texto: "¿Qué tan útil fue el curso para tu trabajo?", obligatoria: true },
-            { id: "p2", tipo: "opcion", texto: "¿La duración del curso fue adecuada?", obligatoria: true,
-              opciones: ["Muy corta", "Adecuada", "Muy larga"] },
-            { id: "p3", tipo: "texto", texto: "¿Qué tema te gustaría aprender?", obligatoria: false },
-        ],
-    },
-];
+const MES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const fecha = (iso) => { const [a, m, d] = String(iso || "").split("-"); return a ? `${d} ${MES[Number(m) - 1]} ${a}` : ""; };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-const CLAVE = "encuestasRespondidas";
-
-function leerGuardadas() {
-    try { return JSON.parse(localStorage.getItem(CLAVE)) || {}; }
-    catch (e) { return {}; }
-}
-function guardarRespuestas(id, datos) {
-    const todas = leerGuardadas();
-    todas[id] = datos;
-    try { localStorage.setItem(CLAVE, JSON.stringify(todas)); } catch (e) {}
-}
-
+let encuestas = [];
 const listaEncuestas = document.getElementById("listaEncuestas");
 
 function pintarEncuestas() {
-    const guardadas = leerGuardadas();
-    const respondidas = encuestas.filter((e) => guardadas[e.id]).length;
+    const respondidas = encuestas.filter((e) => e.respondida).length;
+    const total = encuestas.length;
 
     document.getElementById("encRespondidas").textContent = respondidas;
-    document.getElementById("encPendientes").textContent = encuestas.length - respondidas;
-    document.getElementById("encParticipacion").textContent =
-        Math.round((respondidas / encuestas.length) * 100) + "%";
+    document.getElementById("encPendientes").textContent = encuestas.filter((e) => !e.respondida && !e.cerrada).length;
+    document.getElementById("encParticipacion").textContent = total ? Math.round((respondidas / total) * 100) + "%" : "0%";
 
-    listaEncuestas.innerHTML = "";
+    listaEncuestas.innerHTML = total ? "" : `<p class="text-secondary">No hay encuestas disponibles por ahora.</p>`;
+
     encuestas.forEach((e) => {
-        const hecha = guardadas[e.id];
         const item = document.createElement("div");
-        item.className = "enc-card" + (hecha ? " hecha" : "");
+        item.className = "enc-card" + (e.respondida ? " hecha" : "");
+        const estado = e.respondida
+            ? `<span class="badge-status badge-autorizada">Respondida</span>`
+            : e.cerrada
+                ? `<span class="badge-status badge-pendiente">Cerrada</span>`
+                : `<button class="btn btn-responder btn-sm text-white px-3">Responder (+${e.puntos} pts)</button>`;
         item.innerHTML = `
-            <div class="enc-icono"><i class="bi ${hecha ? "bi-check2-circle" : "bi-clipboard2-check"}"></i></div>
+            <div class="enc-icono"><i class="bi ${e.respondida ? "bi-check2-circle" : "bi-clipboard2-check"}"></i></div>
             <div class="flex-grow-1">
-                <div class="fw-semibold">${e.titulo}</div>
-                <div class="text-secondary small">${e.descripcion}</div>
-                <div class="enc-meta mt-1">${e.preguntas.length} preguntas · Cierra ${e.cierre}</div>
+                <div class="fw-semibold">${esc(e.titulo)}</div>
+                <div class="text-secondary small">${esc(e.descripcion)}</div>
+                <div class="enc-meta mt-1">${e.preguntas.length} preguntas · ${e.respondida ? "Respondida el " + fecha(e.respondida) : "Cierra " + fecha(e.cierre)}</div>
             </div>
-            ${hecha
-                ? `<span class="badge-status badge-autorizada">Respondida</span>`
-                : `<button class="btn btn-responder btn-sm text-white px-3">Responder</button>`}
-        `;
+            ${estado}`;
         const boton = item.querySelector(".btn-responder");
         if (boton) boton.addEventListener("click", () => abrirEncuesta(e));
         listaEncuestas.appendChild(item);
     });
+}
+
+async function cargarEncuestas() {
+    try {
+        encuestas = (await api("/encuestas")).encuestas;
+        pintarEncuestas();
+    } catch (e) {
+        console.error(e);
+        listaEncuestas.innerHTML = `<p class="text-danger">No se pudieron cargar las encuestas.</p>`;
+    }
 }
 
 const modalEncuesta = new bootstrap.Modal(document.getElementById("modalEncuesta"));
@@ -86,23 +61,21 @@ let respuestas = {};
 
 function htmlPregunta(p) {
     let campo = "";
-
     if (p.tipo === "escala") {
         campo = `<div class="enc-escala">` + [1, 2, 3, 4, 5].map((n) =>
             `<label><input type="radio" name="${p.id}" value="${n}"><span>${n}</span></label>`).join("") +
             `</div><div class="enc-escala-etq"><span>Muy mal</span><span>Excelente</span></div>`;
     } else if (p.tipo === "opcion") {
         campo = p.opciones.map((o) =>
-            `<label class="enc-opcion"><input type="radio" name="${p.id}" value="${o}"><span>${o}</span></label>`).join("");
+            `<label class="enc-opcion"><input type="radio" name="${p.id}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join("");
     } else if (p.tipo === "multiple") {
         campo = p.opciones.map((o) =>
-            `<label class="enc-opcion multi"><input type="checkbox" name="${p.id}" value="${o}"><span>${o}</span></label>`).join("");
+            `<label class="enc-opcion multi"><input type="checkbox" name="${p.id}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join("");
     } else {
-        campo = `<textarea class="form-control" name="${p.id}" rows="4" placeholder="Escribe tu respuesta..."></textarea>`;
+        campo = `<textarea class="form-control" name="${p.id}" rows="4" maxlength="1000" placeholder="Escribe tu respuesta..."></textarea>`;
     }
-
     const opcional = p.obligatoria ? "" : ' <small class="text-secondary fw-normal">(opcional)</small>';
-    return `<div class="enc-pregunta">${p.texto}${opcional}</div>${campo}`;
+    return `<div class="enc-pregunta">${esc(p.texto)}${opcional}</div>${campo}`;
 }
 
 function leerRespuesta(p) {
@@ -123,6 +96,11 @@ function restaurar(p) {
 
 const vacia = (v) => Array.isArray(v) ? v.length === 0 : v === "";
 
+function mostrarError(texto) {
+    encError.textContent = texto || "Esta pregunta es obligatoria.";
+    encError.classList.remove("d-none");
+}
+
 function pintarPaso() {
     const total = encuestaActual.preguntas.length;
     const p = encuestaActual.preguntas[indice];
@@ -134,6 +112,7 @@ function pintarPaso() {
 
     btnAnterior.classList.toggle("invisible", indice === 0);
     btnSiguiente.textContent = indice === total - 1 ? "Enviar respuestas" : "Siguiente";
+    btnSiguiente.disabled = false;
     encError.classList.add("d-none");
 }
 
@@ -153,14 +132,11 @@ btnAnterior.addEventListener("click", () => {
     pintarPaso();
 });
 
-btnSiguiente.addEventListener("click", () => {
+btnSiguiente.addEventListener("click", async () => {
     const p = encuestaActual.preguntas[indice];
     const valor = leerRespuesta(p);
 
-    if (p.obligatoria && vacia(valor)) {
-        encError.classList.remove("d-none");
-        return;
-    }
+    if (p.obligatoria && vacia(valor)) return mostrarError();
     respuestas[p.id] = valor;
 
     if (indice < encuestaActual.preguntas.length - 1) {
@@ -169,10 +145,19 @@ btnSiguiente.addEventListener("click", () => {
         return;
     }
 
-    guardarRespuestas(encuestaActual.id, { fecha: new Date().toISOString(), respuestas });
-    modalEncuesta.hide();
-    pintarEncuestas();
+    // Última pregunta: se guarda en la BD y se suman los puntos
+    btnSiguiente.disabled = true;
+    try {
+        const r = await api(`/encuestas/${encuestaActual.id}/responder`, { method: "POST", body: { respuestas } });
+        modalEncuesta.hide();
+        await cargarEncuestas();
+        window.dispatchEvent(new Event("puntos-actualizados"));
+        if (r.puntos) alert(`¡Gracias por responder! Ganaste +${r.puntos} pts`);
+    } catch (e) {
+        mostrarError(e.mensaje);
+        btnSiguiente.disabled = false;
+    }
 });
 
-pintarEncuestas();
+cargarEncuestas();
 })();

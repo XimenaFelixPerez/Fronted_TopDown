@@ -1,77 +1,95 @@
-
-const datosPersonales = [
-    ["CURP", "MECC890412HDFRRL09"],
-    ["RFC", "MECC890412AB3"],
-    ["Fecha de nacimiento", "12 Abr 1989"],
-    ["Género", "Masculino"],
-    ["Estado civil", "Casado"],
-    ["Tipo de sangre", "O+"],
-    ["Licencia de manejo", "B — Vigente al 2028"],
-    ["Teléfono celular", "55 1234 5678"],
-    ["Teléfono de casa", "55 9876 5432"],
-    ["Teléfono de recado", "55 1111 2222"],
-];
-
-const datosDireccion = [
-    ["Calle", "Av. Insurgentes"],
-    ["Número exterior", "1428"],
-    ["Colonia", "Del Valle"],
-    ["Municipio", "Benito Juárez"],
-    ["Estado", "Ciudad de México"],
-    ["CP", "03100"],
-    ["País", "México"],
-    ["Celular", "55 1234 5678"],
-];
-
-const datosSeguridad = [
-    ["NSS (IMSS)", "54321098765"],
-    ["Número de afiliación IMSS", "54321098765-0001"],
-    ["Tipo de cobertura", "Familiar (titular + beneficiarios)"],
-    ["Clínica asignada", "UMF No. 20"],
-    ["Fecha de alta IMSS", "15 Mar 2021"],
-    ["ISSSTE", "No aplica"],
-    ["INFONAVIT", "Activo"],
-    ["Subcuenta vivienda", "$28,800.00"],
-];
+(function () {
+const MES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const fecha = (iso) => { const [a, m, d] = String(iso || "").split("-"); return a ? `${d} ${MES[Number(m) - 1]} ${a}` : ""; };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const iniciales = (n) => String(n || "").split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+const $ = (id) => document.getElementById(id);
 
 function renderFilas(idContenedor, filas) {
-    const cont = document.getElementById(idContenedor);
-    filas.forEach(([etiqueta, valor]) => {
-        const fila = document.createElement("div");
-        fila.className = "fila-dato";
-        fila.innerHTML = `<span>${etiqueta}</span><span>${valor}</span>`;
-        cont.appendChild(fila);
-    });
+    $(idContenedor).innerHTML = filas.map(([etiqueta, valor]) =>
+        `<div class="fila-dato"><span>${etiqueta}</span><span>${valor ? esc(valor) : "—"}</span></div>`).join("");
 }
 
-renderFilas("datosPersonales", datosPersonales);
-renderFilas("datosDireccion", datosDireccion);
-renderFilas("datosSeguridad", datosSeguridad);
+async function cargarPerfil() {
+    try {
+        const p = await api("/perfil");
 
+        $("perfilIniciales").textContent = iniciales(p.nombre);
+        $("pNombre").textContent = p.nombre;
+        $("pNumero").textContent = p.numero;
+        $("pDepto").textContent = p.departamento;
+        $("pPuesto").textContent = p.puesto;
+        $("pCorreo").textContent = p.correoInstitucional;
+        $("pEmpresa").textContent = p.empresa;
+        $("pIngreso").textContent = fecha(p.ingreso);
+        $("pSupervisor").textContent = p.supervisor || "—";
+
+        renderFilas("datosPersonales", [
+            ["CURP", p.curp],
+            ["RFC", p.rfc],
+            ["Fecha de nacimiento", fecha(p.nacimiento)],
+            ["Género", p.genero],
+            ["Estado civil", p.estadoCivil],
+            ["Tipo de sangre", p.tipoSangre],
+            ["Licencia de manejo", p.licencia],
+            ["Teléfono celular", p.telCelular],
+            ["Teléfono de casa", p.telCasa],
+            ["Teléfono de recado", p.telRecado],
+        ]);
+
+        const d = p.direccion;
+        renderFilas("datosDireccion", [
+            ["Calle", d.calle],
+            ["Número exterior", d.numExt],
+            ["Colonia", d.colonia],
+            ["Municipio", d.municipio],
+            ["Estado", d.estado],
+            ["CP", d.cp],
+            ["País", d.pais],
+            ["Celular", p.telCelular],
+        ]);
+
+        renderFilas("datosSeguridad", [
+            ["NSS (IMSS)", p.nss],
+            ["Tipo de cobertura", p.imss.cobertura],
+            ["Clínica asignada", p.imss.clinica],
+            ["Fecha de alta IMSS", fecha(p.imss.alta)],
+            ["ISSSTE", "No aplica"],
+            ["INFONAVIT", p.imss.infonavit ? "Activo" : "Sin crédito"],
+            ["Régimen fiscal", p.regimen],
+        ]);
+
+        // El administrador no envía solicitudes, solo las evalúa
+        $("btnSolicitarAct").classList.toggle("d-none", p.esAdmin);
+    } catch (e) {
+        console.error(e);
+        if (e.status === 401) location.href = "index.html";
+    }
+}
+
+/* ============================ SOLICITUD DE ACTUALIZACIÓN ============================ */
 const tiposDoc = [
-        { id: "ine", nombre: "INE / Credencial de elector",
-        campos: ["Nombre completo", "CURP", "Fecha de nacimiento", "Género", "Calle", "Colonia", "CP"] },
-        { id: "domicilio", nombre: "Comprobante de domicilio",
-        campos: ["Calle", "Número exterior", "Colonia", "Municipio", "Estado", "CP", "País"] },
-        { id: "acta", nombre: "Acta de nacimiento",
-        campos: ["Nombre completo", "Fecha de nacimiento", "Género", "CURP", "Estado"] },
+    { id: "ine", nombre: "INE / Credencial de elector",
+      campos: ["Nombre completo", "CURP", "Fecha de nacimiento", "Género", "Calle", "Colonia", "CP"] },
+    { id: "domicilio", nombre: "Comprobante de domicilio",
+      campos: ["Calle", "Número exterior", "Colonia", "Municipio", "Estado", "CP", "País"] },
+    { id: "acta", nombre: "Acta de nacimiento",
+      campos: ["Nombre completo", "Fecha de nacimiento", "Género", "CURP", "Estado"] },
 ];
 
 const MAX_MB = 10;
 const EXTENSIONES = ["jpg", "jpeg", "png", "pdf"];
 
-const modalEl = document.getElementById("modalActualizacion");
+const modalEl = $("modalActualizacion");
 const modalAct = new bootstrap.Modal(modalEl);
-const tiposDocCont = document.getElementById("tiposDoc");
-const camposAuto = document.getElementById("camposAuto");
-const dropzone = document.getElementById("dropzone");
-const dropzoneContenido = document.getElementById("dropzoneContenido");
-const archivoInput = document.getElementById("archivoInput");
-const errorArchivo = document.getElementById("errorArchivo");
-const accionesSolicitud = document.getElementById("accionesSolicitud");
-const avisoPerfil = document.getElementById("avisoPerfil");
-
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const tiposDocCont = $("tiposDoc");
+const camposAuto = $("camposAuto");
+const dropzone = $("dropzone");
+const dropzoneContenido = $("dropzoneContenido");
+const archivoInput = $("archivoInput");
+const errorArchivo = $("errorArchivo");
+const accionesSolicitud = $("accionesSolicitud");
+const avisoPerfil = $("avisoPerfil");
 
 const HTML_DROPZONE_VACIA = `
     <i class="bi bi-upload fs-3 text-secondary"></i>
@@ -141,6 +159,7 @@ function recibirArchivo(f) {
     accionesSolicitud.classList.remove("d-none");
     accionesSolicitud.classList.add("d-flex");
 }
+
 dropzone.addEventListener("click", () => archivoInput.click());
 dropzone.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); archivoInput.click(); }
@@ -161,14 +180,28 @@ modalEl.addEventListener("show.bs.modal", () => {
     reiniciarArchivo();
 });
 
-document.getElementById("btnEnviarSolicitud").addEventListener("click", () => {
-    const tipo = tiposDoc.find((t) => t.id === tipoSeleccionado).nombre;
-    modalAct.hide();
-
-    avisoPerfil.textContent = `Solicitud enviada con tu ${tipo.toLowerCase()}. Recursos Humanos revisará el documento y actualizará tus datos.`;
-    avisoPerfil.classList.remove("d-none");
-    setTimeout(() => avisoPerfil.classList.add("d-none"), 6000);
+$("btnEnviarSolicitud").addEventListener("click", async () => {
+    if (!archivo) return mostrarError("Sube un documento.");
+    const btn = $("btnEnviarSolicitud");
+    btn.disabled = true;
+    try {
+        const r = await api("/solicitudes/datos", {
+            method: "POST",
+            body: { documento: tipoSeleccionado, archivo: archivo.name },
+        });
+        const tipo = tiposDoc.find((t) => t.id === tipoSeleccionado).nombre;
+        modalAct.hide();
+        avisoPerfil.textContent = `Solicitud ${r.folio} enviada con tu ${tipo.toLowerCase()}. Recursos Humanos la revisará y te llegará una notificación con la respuesta.`;
+        avisoPerfil.classList.remove("d-none");
+        setTimeout(() => avisoPerfil.classList.add("d-none"), 7000);
+    } catch (e) {
+        mostrarError(e.mensaje || "No se pudo enviar la solicitud.");
+    } finally {
+        btn.disabled = false;
+    }
 });
 
 renderTipos();
 reiniciarArchivo();
+cargarPerfil();
+})();

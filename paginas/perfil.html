@@ -86,10 +86,10 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4 pt-3 border-top">
-                <div class="avatar-circle">CM</div>
+                <div class="avatar-circle">--</div>
                 <div>
-                    <div class="fw-semibold small">Carlos Mendoza</div>
-                    <div class="text-secondary small">Emp. 00124</div>
+                    <div class="fw-semibold small"></div>
+                    <div class="text-secondary small"></div>
                 </div>
             </div>
         </aside>
@@ -114,23 +114,23 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold mb-0">Mi Perfil</h2>
-                    <button class="btn btn-primary fw-semibold btn-portal" data-bs-toggle="modal" data-bs-target="#modalActualizacion">
+                    <button class="btn btn-primary fw-semibold btn-portal" id="btnSolicitarAct" data-bs-toggle="modal" data-bs-target="#modalActualizacion">
                         Solicitar actualización de datos
                     </button>
                 </div>
 
                 <div class="panel mb-3">
                     <div class="d-flex align-items-center gap-4">
-                        <div class="avatar-circle avatar-xxl">CM</div>
+                        <div class="avatar-circle avatar-xxl" id="perfilIniciales">--</div>
                         <div class="row g-3 flex-grow-1">
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Nombre completo</small><span class="fw-semibold small">Carlos Mendoza Castillo</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Núm. empleado</small><span class="fw-semibold small">00124</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Departamento</small><span class="fw-semibold small">Tecnología</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Puesto</small><span class="fw-semibold small">Desarrollador Sr.</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Correo institucional</small><span class="fw-semibold small">cmendoza@eslabon.com.mx</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Compañía</small><span class="fw-semibold small">Desarrollo Eslabón S.A. de C.V.</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Fecha de ingreso</small><span class="fw-semibold small">15 Mar 2021</span></div>
-                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Supervisor</small><span class="fw-semibold small">Ana Ríos</span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Nombre completo</small><span class="fw-semibold small" id="pNombre"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Núm. empleado</small><span class="fw-semibold small" id="pNumero"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Departamento</small><span class="fw-semibold small" id="pDepto"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Puesto</small><span class="fw-semibold small" id="pPuesto"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Correo institucional</small><span class="fw-semibold small" id="pCorreo"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Compañía</small><span class="fw-semibold small" id="pEmpresa"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Fecha de ingreso</small><span class="fw-semibold small" id="pIngreso"></span></div>
+                            <div class="col-md-3 col-6"><small class="text-secondary d-block">Supervisor</small><span class="fw-semibold small" id="pSupervisor"></span></div>
                         </div>
                     </div>
                 </div>

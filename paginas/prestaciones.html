@@ -87,10 +87,10 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4 pt-3 border-top">
-                <div class="avatar-circle">CM</div>
+                <div class="avatar-circle">--</div>
                 <div>
-                    <div class="fw-semibold small">Carlos Mendoza</div>
-                    <div class="text-secondary small">Emp. 00124</div>
+                    <div class="fw-semibold small"></div>
+                    <div class="text-secondary small"></div>
                 </div>
             </div>
         </aside>
@@ -143,15 +143,15 @@
                             <div class="col-md-7">
                                 <div class="panel h-100">
                                     <h6 class="fw-bold mb-3">Datos de registro IMSS</h6>
-                                    <div class="fila-dato"><span>NSS registrado ante IMSS</span><span>54321098765</span></div>
-                                    <div class="fila-dato"><span>Número de afiliación</span><span>54321098765-0001</span></div>
+                                    <div class="fila-dato"><span>NSS registrado ante IMSS</span><span id="imssNss">—</span></div>
+                                    <div class="fila-dato"><span>Número de afiliación</span><span id="imssAfil">—</span></div>
                                     <div class="fila-dato"><span>Régimen laboral</span><span>Régimen Obligatorio</span></div>
                                     <div class="fila-dato"><span>Modalidad</span><span>Permanente</span></div>
-                                    <div class="fila-dato"><span>Clínica asignada</span><span>UMF No. 20 — CDMX</span></div>
-                                    <div class="fila-dato"><span>Tipo de cobertura</span><span>Familiar (titular + beneficiarios)</span></div>
-                                    <div class="fila-dato"><span>Fecha de alta</span><span>15 Mar 2021</span></div>
-                                    <div class="fila-dato"><span>Última actualización</span><span>01 Ago 2026</span></div>
-                                    <div class="fila-dato"><span>Salario base de cotización</span><span>$48,000.00</span></div>
+                                    <div class="fila-dato"><span>Clínica asignada</span><span id="imssClinica">—</span></div>
+                                    <div class="fila-dato"><span>Tipo de cobertura</span><span id="imssCobertura">—</span></div>
+                                    <div class="fila-dato"><span>Fecha de alta</span><span id="imssAlta">—</span></div>
+                                    <div class="fila-dato"><span>Última actualización</span><span id="imssActualizacion">—</span></div>
+                                    <div class="fila-dato"><span>Salario base de cotización</span><span id="imssSalario">—</span></div>
                                 </div>
                             </div>
 
@@ -163,24 +163,21 @@
                                             <div>Cuota patronal (empresa)</div>
                                             <small class="text-secondary">La empresa paga esto por ti</small>
                                         </div>
-                                        <span class="numero">$9,600.00</span>
+                                        <span class="numero" id="cuotaPatronal">—</span>
                                     </div>
                                     <div class="d-flex justify-content-between py-2">
                                         <div>
                                             <div>Cuota obrera (tu aportación)</div>
                                             <small class="text-secondary">Se descuenta de tu salario</small>
                                         </div>
-                                        <span class="numero">$2,640.00</span>
+                                        <span class="numero" id="cuotaObrera">—</span>
                                     </div>
                                 </div>
 
                                 <div class="panel">
                                     <h6 class="fw-bold mb-3">Historial de incapacidades</h6>
                                     <small class="text-secondary d-block mb-3">Incapacidades registradas en los últimos 24 meses</small>
-                                    <div class="d-flex justify-content-between small pb-2 border-bottom">
-                                        <span>Feb 2024 — Enfermedad general</span><span>3 días</span>
-                                    </div>
-                                    <small class="text-secondary d-block pt-3">Sin más registros en el periodo</small>
+                                    <small class="text-secondary d-block">Sin incapacidades registradas en el periodo</small>
                                 </div>
                             </div>
                         </div>
@@ -196,8 +193,8 @@
                         <div class="panel mb-3">
                             <div class="row g-3">
                                 <div class="col"><small class="text-secondary d-block">Tipo de fondo</small><span class="fw-semibold small">Fondo de ahorro empresarial</span></div>
-                                <div class="col"><small class="text-secondary d-block">Aportación empleado</small><span class="fw-semibold small">10% del salario mensual</span></div>
-                                <div class="col"><small class="text-secondary d-block">Aportación empresa</small><span class="fw-semibold small">Paridad 1:1 hasta 13%</span></div>
+                                <div class="col"><small class="text-secondary d-block">Aportación empleado</small><span class="fw-semibold small">5% del salario mensual</span></div>
+                                <div class="col"><small class="text-secondary d-block">Aportación empresa</small><span class="fw-semibold small">Paridad 1:1</span></div>
                                 <div class="col"><small class="text-secondary d-block">Periodo de retiro</small><span class="fw-semibold small">Enero de cada año o al separarse</span></div>
                                 <div class="col"><small class="text-secondary d-block">Banco administrador</small><span class="fw-semibold small">BBVA — Cuenta Empresarial</span></div>
                             </div>
@@ -207,15 +204,15 @@
                             <div class="col-md-4">
                                 <div class="card-stat card-stat-highlight h-auto mb-3">
                                     <small>Saldo total acumulado</small>
-                                    <div class="stat-value numero" id="saldoTotal">$28,800.00</div>
+                                    <div class="stat-value numero" id="saldoTotal">—</div>
                                 </div>
                                 <div class="card-stat h-auto mb-3">
                                     <small class="text-secondary">Aportación mensual (tú)</small>
-                                    <div class="stat-value text-dark numero">$2,400.00</div>
+                                    <div class="stat-value text-dark numero" id="aportEmp">—</div>
                                 </div>
                                 <div class="card-stat h-auto">
                                     <small class="text-secondary">Aportación mensual (empresa)</small>
-                                    <div class="stat-value text-dark numero">$2,400.00</div>
+                                    <div class="stat-value text-dark numero" id="aportEmpresa">—</div>
                                 </div>
                             </div>
 
@@ -244,11 +241,11 @@
 
                         <div class="panel mb-3">
                             <div class="row g-3">
-                                <div class="col"><small class="text-secondary d-block">Días disponibles</small><span class="fw-semibold small" id="infoDisponibles">12</span></div>
-                                <div class="col"><small class="text-secondary d-block">Compañía</small><span class="fw-semibold small">Desarrollo Eslabón</span></div>
-                                <div class="col"><small class="text-secondary d-block">Empleado</small><span class="fw-semibold small">Carlos Mendoza</span></div>
-                                <div class="col"><small class="text-secondary d-block">Antigüedad desde</small><span class="fw-semibold small">15 Mar 2021</span></div>
-                                <div class="col"><small class="text-secondary d-block">Supervisor</small><span class="fw-semibold small">Ana Ríos</span></div>
+                                <div class="col"><small class="text-secondary d-block">Días disponibles</small><span class="fw-semibold small" id="infoDisponibles">—</span></div>
+                                <div class="col"><small class="text-secondary d-block">Compañía</small><span class="fw-semibold small" id="vacEmpresa">—</span></div>
+                                <div class="col"><small class="text-secondary d-block">Empleado</small><span class="fw-semibold small" id="vacEmpleado">—</span></div>
+                                <div class="col"><small class="text-secondary d-block">Antigüedad desde</small><span class="fw-semibold small" id="vacIngreso">—</span></div>
+                                <div class="col"><small class="text-secondary d-block">Supervisor</small><span class="fw-semibold small" id="vacSupervisor">—</span></div>
                             </div>
                         </div>
 
@@ -297,7 +294,7 @@
             <div class="modal-content p-2">
                 <div class="modal-body">
                     <h6 class="fw-bold mb-1">Solicitar vacaciones</h6>
-                    <small class="text-secondary d-block mb-3">Saldo disponible: <strong id="modalSaldo">12 días</strong></small>
+                    <small class="text-secondary d-block mb-3">Saldo disponible: <strong id="modalSaldo">—</strong></small>
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">

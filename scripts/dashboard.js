@@ -31,7 +31,16 @@ const antiguedad = (iso) => {
       document.getElementById('pagoFecha').textContent = fechaCorta(u.fechaPago);
       document.getElementById('salarioBruto').textContent = money(u.bruto);
       document.getElementById('salarioMes').textContent = `${MESES[u.mes - 1]} ${u.anio}`;
+    } else {
+      ['pagoNeto', 'salarioBruto'].forEach((id) => (document.getElementById(id).textContent = '—'));
+      document.getElementById('pagoFecha').textContent = 'Sin recibos todavía';
+      document.getElementById('salarioMes').textContent = '';
     }
+
+    document.getElementById('vacDisp').textContent = `${d.vacaciones.disponibles} día${d.vacaciones.disponibles === 1 ? '' : 's'}`;
+    document.getElementById('vacPeriodo').textContent = `Periodo ${d.vacaciones.anio}`;
+    document.getElementById('misPuntos').textContent = `${Number(d.puntos.total).toLocaleString('es-MX')} pts`;
+    document.getElementById('miNivel').textContent = `Nivel ${d.puntos.nivel}`;
 
     document.getElementById('listaEventos').innerHTML = d.eventos.map((ev, i, a) => {
       const [, m, dia] = partes(ev.Fecha);

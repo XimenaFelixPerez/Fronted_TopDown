@@ -1,126 +1,65 @@
-const puntosTotales = 1740;
-
-const niveles = [
-    { nombre: "Nuevo Ingreso",        min: 0 },
-    { nombre: "Colaborador",          min: 500 },
-    { nombre: "Colaborador Destacado", min: 1000 },
-    { nombre: "Colaborador Pro",      min: 1500 },
-    { nombre: "Líder Eslabón",        min: 2000 },
-    { nombre: "Embajador Eslabón",    min: 3000 },
-];
-
-const historial = [
-    { concepto: "Encuesta de clima laboral respondida", fecha: "15 Jul 2026", puntos: 50 },
-    { concepto: "Participación en evento Q2",           fecha: "28 Jun 2026", puntos: 80 },
-    { concepto: "Evaluación de capacitación respondida", fecha: "15 Jun 2026", puntos: 50 },
-    { concepto: "Encuesta de satisfacción Q1",          fecha: "31 Mar 2026", puntos: 50 },
-    { concepto: "Participación en evento Q1",           fecha: "15 Feb 2026", puntos: 80 },
-];
+(function () {
+const $ = (id) => document.getElementById(id);
+const MES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const fecha = (iso) => { const [a, m, d] = String(iso || "").split("-"); return a ? `${d} ${MES[Number(m) - 1]} ${a}` : ""; };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pts = (n) => Number(n).toLocaleString("es-MX");
 
 const formasDeGanar = [
-    { titulo: "Responder una encuesta", puntos: 50 },
+    { titulo: "Responder una encuesta", puntos: "30-50" },
     { titulo: "Participar en un evento", puntos: 80 },
     { titulo: "Completar un curso", puntos: 100 },
     { titulo: "Enviar felicitación", puntos: 10 },
 ];
 
-let indiceNivel = 0;
-niveles.forEach((n, i) => { if (puntosTotales >= n.min) indiceNivel = i; });
-
-const nivelActual = niveles[indiceNivel];
-const siguiente = niveles[indiceNivel + 1] || null;
-
-document.getElementById("nivelNombre").textContent = nivelActual.nombre;
-document.getElementById("nivelNumero").textContent = `Nivel ${indiceNivel + 1} de ${niveles.length}`;
-
-if (siguiente) {
-    const porcentaje = Math.round((puntosTotales / siguiente.min) * 100);
-    document.getElementById("barraNivel").style.width = porcentaje + "%";
-    document.getElementById("progresoTexto").textContent = `${puntosTotales} / ${siguiente.min} pts (${porcentaje}%)`;
-    document.getElementById("siguienteNombre").textContent = siguiente.nombre;
-    document.getElementById("ptsFaltantes").textContent = `${siguiente.min - puntosTotales} pts necesarios`;
-} else {
-    document.getElementById("barraNivel").style.width = "100%";
-    document.getElementById("progresoTexto").textContent = `${puntosTotales} pts`;
-    document.getElementById("siguienteNombre").textContent = "Nivel máximo alcanzado";
-    document.getElementById("ptsFaltantes").textContent = "";
-}
-
-const historialPuntos = document.getElementById("historialPuntos");
-
-historial.forEach((h) => {
-    const fila = document.createElement("div");
-    fila.className = "d-flex justify-content-between align-items-center px-4 py-3 border-bottom";
-    fila.innerHTML = `
-        <div>
-            <div>${h.concepto}</div>
-            <small class="text-secondary">${h.fecha}</small>
-        </div>
-        <span class="fw-semibold texto-portal numero">+${h.puntos} pts</span>
-    `;
-    historialPuntos.appendChild(fila);
-});
-
-document.getElementById("totalPuntos").textContent = `${puntosTotales} pts`;
-
-const formasPuntos = document.getElementById("formasPuntos");
-
-formasDeGanar.forEach((f) => {
-    const col = document.createElement("div");
-    col.className = "col-md-3 col-6";
-    col.innerHTML = `
+$("formasPuntos").innerHTML = formasDeGanar.map((f) => `
+    <div class="col-md-3 col-6">
         <div class="forma-card">
             <div>${f.titulo}</div>
             <div class="fw-bold fs-5 texto-portal mt-2">+${f.puntos} pts</div>
         </div>
-    `;
-    formasPuntos.appendChild(col);
-});
+    </div>`).join("");
 
-const encuestas = [
-    { titulo: "Encuesta de satisfacción laboral", descripcion: "Comparte cómo te has sentido en el trabajo este trimestre. Anónima y tarda 5 minutos.", estado: "Pendiente", vence: "31 Ago 2026", preguntas: 10, puntos: 50 },
-    { titulo: "Encuesta de clima organizacional", descripcion: "Tu perspectiva sobre el ambiente de trabajo y la comunicación interna.", estado: "Pendiente", vence: "20 Sep 2026", preguntas: 8, puntos: 50 },
-    { titulo: "Evaluación del programa de capacitación", descripcion: "Retroalimentación sobre los cursos del segundo trimestre.", estado: "Respondida", preguntas: 6, puntos: 50 },
-    { titulo: "Encuesta de eventos internos Q2", descripcion: "Evaluación del evento de integración de junio 2026.", estado: "Respondida", preguntas: 5, puntos: 50 },
-];
+async function cargarPuntos() {
+    try {
+        const d = await api("/desempeno");
+        const { total, nivel } = d;
 
-const listaEncuestas = document.getElementById("listaEncuestas");
+        $("nivelNombre").textContent = nivel.nombre;
+        $("nivelNumero").textContent = `Nivel ${nivel.numero} de ${nivel.de}`;
 
-function renderEncuestas() {
-    listaEncuestas.innerHTML = "";
-
-    encuestas.forEach((e) => {
-        const respondida = e.estado === "Respondida";
-        const card = document.createElement("div");
-        card.className = "panel mb-3 d-flex justify-content-between align-items-start gap-3";
-        card.innerHTML = `
-            <div>
-                <div class="d-flex align-items-center gap-3 mb-2 small">
-                    <span class="badge-status ${respondida ? "badge-autorizada" : "badge-pendiente"}">${e.estado}</span>
-                    <span class="text-secondary">${respondida ? "Completada" : "Vence: " + e.vence}</span>
-                    <span class="text-secondary">${e.preguntas} preguntas</span>
-                </div>
-                <div class="fw-semibold mb-1">${e.titulo}</div>
-                <div class="text-secondary">${e.descripcion}</div>
-            </div>
-            ${respondida ? "" : `<button class="btn btn-primary btn-responder text-nowrap">Responder (+${e.puntos} pts)</button>`}
-        `;
-
-        const boton = card.querySelector(".btn-responder");
-        if (boton) {
-            boton.addEventListener("click", () => {
-                e.estado = "Respondida";
-                renderEncuestas();
-            });
+        if (nivel.siguiente) {
+            const porcentaje = Math.min(100, Math.round((total / nivel.siguiente.min) * 100));
+            $("barraNivel").style.width = porcentaje + "%";
+            $("progresoTexto").textContent = `${pts(total)} / ${pts(nivel.siguiente.min)} pts (${porcentaje}%)`;
+            $("siguienteNombre").textContent = nivel.siguiente.nombre;
+            $("ptsFaltantes").textContent = `${pts(nivel.siguiente.min - total)} pts necesarios`;
+        } else {
+            $("barraNivel").style.width = "100%";
+            $("progresoTexto").textContent = `${pts(total)} pts`;
+            $("siguienteNombre").textContent = "Nivel máximo alcanzado";
+            $("ptsFaltantes").textContent = "";
         }
-        listaEncuestas.appendChild(card);
-    });
 
-    const respondidas = encuestas.filter((e) => e.estado === "Respondida").length;
-    document.getElementById("encRespondidas").textContent = respondidas;
-    document.getElementById("encPendientes").textContent = encuestas.length - respondidas;
-    document.getElementById("encParticipacion").textContent =
-        Math.round((respondidas / encuestas.length) * 100) + "%";
+        $("historialPuntos").innerHTML = d.historial.length
+            ? d.historial.map((h) => `
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                    <div>
+                        <div>${esc(h.Concepto)}</div>
+                        <small class="text-secondary">${fecha(h.Fecha)}</small>
+                    </div>
+                    <span class="fw-semibold texto-portal numero">${h.Puntos > 0 ? "+" : ""}${pts(h.Puntos)} pts</span>
+                </div>`).join("")
+            : `<div class="px-4 py-4 text-secondary">Aún no tienes puntos. ¡Responde una encuesta para empezar!</div>`;
+
+        $("totalPuntos").textContent = `${pts(total)} pts`;
+    } catch (e) {
+        console.error(e);
+        if (e.status === 401) location.href = "index.html";
+    }
 }
 
-renderEncuestas();
+// encuestas.js avisa cuando ganas puntos para refrescar sin recargar la página
+window.addEventListener("puntos-actualizados", cargarPuntos);
+cargarPuntos();
+})();

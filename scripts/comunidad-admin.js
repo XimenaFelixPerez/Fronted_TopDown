@@ -1,7 +1,7 @@
 (async function () {
 const $ = (id) => document.getElementById(id);
-// Las noticias se administran en admin.html (van a la BD); aquí quedan eventos, fechas y encuestas
-const COLS = { evento: "eventos", fecha: "fechas", encuesta: "encuestas" };
+// Noticias y encuestas se administran en admin.html (van a la BD); aquí quedan eventos y fechas
+const COLS = { evento: "eventos", fecha: "fechas" };
 const NOMBRE = { noticia: "Noticia", evento: "Evento", fecha: "Fecha importante", encuesta: "Encuesta" };
 const ETQ = { publicado: "Publicado", borrador: "Borrador", activa: "Activa", inactiva: "Inactiva" };
 const ESTADO_SOL = { pendiente: "Pendiente", revision: "En revisión", aprobada: "Aprobada", rechazada: "Rechazada" };
@@ -149,13 +149,13 @@ $("adminRoot").innerHTML = `
         <span class="tag-doc tag-reconocimiento">Administrador</span>
         <small class="text-secondary ms-1">Vista administrativa</small>
         <h3 class="fw-bold mt-2 mb-1">Centro de administración</h3>
-        <div class="text-secondary">Gestiona eventos, fechas y encuestas. Las noticias se publican en <a href="admin.html" class="enlace-portal">Administrar</a>.</div>
+        <div class="text-secondary">Gestiona eventos y fechas importantes. Las noticias, encuestas y solicitudes están en <a href="admin.html" class="enlace-portal">Administrar</a>.</div>
     </div>
     <button class="btn btn-portal text-white fw-semibold" id="admNuevo">Agregar contenido</button>
 </div>
 <ul class="nav nav-tabs kiosco-tabs mb-4" id="admSub">
     <li class="nav-item"><button class="nav-link active" data-sub="resumen" type="button">Resumen</button></li>
-    <li class="nav-item"><button class="nav-link" data-sub="contenido" type="button">Eventos y encuestas</button></li>
+    <li class="nav-item"><button class="nav-link" data-sub="contenido" type="button">Eventos y fechas</button></li>
     ${puede("solicitudes") ? '<li class="nav-item"><button class="nav-link" data-sub="solicitudes" type="button">Solicitudes <span class="badge-new" id="admBadge"></span></button></li>' : ""}
 </ul>
 <div id="admVista"></div>`;
@@ -166,7 +166,7 @@ document.body.insertAdjacentHTML("beforeend", `
     <div class="modal-header"><h5 class="modal-title" id="mTitulo"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body"><div class="row g-3">
       <div class="col-6"><label class="form-label small fw-semibold">Tipo</label><select class="form-select" id="mTipo">
-        <option value="evento">Evento</option><option value="fecha">Fecha importante</option><option value="encuesta">Encuesta</option></select></div>
+        <option value="evento">Evento</option><option value="fecha">Fecha importante</option></select></div>
       <div class="col-6"><label class="form-label small fw-semibold">Estado</label><select class="form-select" id="mEstado"></select></div>
       <div class="col-12"><label class="form-label small fw-semibold">Título</label><input class="form-control" id="mNombre" maxlength="120"></div>
       <div class="col-6"><label class="form-label small fw-semibold">Fecha</label><input type="date" class="form-control" id="mFecha"></div>
@@ -231,18 +231,17 @@ function renderAdmin() {
     if (sub === "resumen") {
         const stats = [
             puede("solicitudes") ? ["Solicitudes pendientes", pend, "Requieren atención"] : ["Fechas publicadas", c.fechas.filter((x) => x.estado !== "borrador").length, "Fechas importantes"],
-            ["Encuestas activas", c.encuestas.filter((x) => x.estado === "activa").length, "Consulta respuestas"],
             ["Eventos publicados", c.eventos.filter((x) => x.estado !== "borrador").length, "Gestiona inscripciones"],
             ];
         const row = h("div", "row g-3 mb-4");
         stats.forEach(([t, n, s]) => {
-            const col = h("div", "col-md-4"), card = h("div", "card-stat");
+            const col = h("div", "col-md-6"), card = h("div", "card-stat");
             card.append(h("small", "text-secondary", t), h("div", "stat-value text-dark", String(n)), h("small", "text-secondary", s));
             col.append(card); row.append(col);
         });
         vista.append(row);
         const panel = h("div", "panel"), cab = h("div", "d-flex justify-content-between align-items-start mb-2");
-        const izq = h("div"); izq.append(h("h6", "fw-bold mb-0", "Comunicación reciente"), h("small", "text-secondary", "Eventos y encuestas en un solo lugar"));
+        const izq = h("div"); izq.append(h("h6", "fw-bold mb-0", "Comunicación reciente"), h("small", "text-secondary", "Próximos eventos"));
         const ver = h("button", "btn btn-link btn-sm p-0 enlace-portal", "Administrar todo");
         ver.onclick = () => { sub = "contenido"; renderAdmin(); };
         cab.append(izq, ver); panel.append(cab);
@@ -256,9 +255,9 @@ function renderAdmin() {
 
     if (sub === "contenido") {
         const cab = h("div", "d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2");
-        const t = h("div"); t.append(h("h6", "fw-bold mb-0", "Contenido interno"), h("small", "text-secondary", "Crea y modifica eventos, fechas y encuestas desde la misma vista."));
+        const t = h("div"); t.append(h("h6", "fw-bold mb-0", "Contenido interno"), h("small", "text-secondary", "Crea y modifica eventos y fechas importantes."));
         const seg = h("div", "segmentado");
-        [["todo", "Todo"], ["evento", "Eventos"], ["fecha", "Fechas"], ["encuesta", "Encuestas"]].forEach(([v, n]) => {
+        [["todo", "Todo"], ["evento", "Eventos"], ["fecha", "Fechas"]].forEach(([v, n]) => {
             const b = h("button", filtro === v ? "activo" : "", n); b.type = "button";
             b.onclick = () => { filtro = v; renderAdmin(); }; seg.append(b);
         });

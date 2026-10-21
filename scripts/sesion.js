@@ -3,7 +3,7 @@
 let ROL_SERVIDOR = null;
 
 const PERMISOS = {
-    admin: ["contenido", "solicitudes"],
+    admin: ["contenido"],   // las solicitudes reales se revisan en admin.html
 };
 const MESES_CORTOS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 

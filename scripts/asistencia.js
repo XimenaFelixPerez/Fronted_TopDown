@@ -220,3 +220,22 @@ btnConsultar.addEventListener("click", () => {
 });
 
 renderMes();
+
+
+// ---------- Datos reales: encabezado del empleado y vacaciones autorizadas desde la BD ----------
+(async function cargarDelServidor() {
+    if (typeof api === "undefined") return;
+    try {
+        const [perfil, vac] = await Promise.all([api("/perfil"), api("/vacaciones")]);
+        document.getElementById("asEmpleado").textContent = perfil.nombre;
+        document.getElementById("asEmpresa").textContent = perfil.empresa;
+        document.getElementById("asDepto").textContent = perfil.departamento;
+
+        // Las vacaciones que RH autorizó se pintan en el calendario
+        vacacionesRangos.length = 0;
+        vac.autorizadas.forEach((a) => vacacionesRangos.push([a.inicio, a.fin]));
+        renderMes();
+    } catch (e) {
+        console.error(e);
+    }
+})();

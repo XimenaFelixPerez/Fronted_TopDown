@@ -1,76 +1,46 @@
-(async function cargarDelServidor() {
-    try {
-        const lista = await api('/noticias');
-
-        if (Array.isArray(lista) && lista.length) {
-            noticias = lista.map((n, i) => ({
-                tipo: "Noticia",
-                clase: "tag-comunicado",
-                titulo: n.titulo,
-                fecha: fechaBonita(String(n.fecha || "").slice(0, 10)),
-                abierta: i === 0,
-                cuerpo: n.contenido || n.resumen || "",
-            }));
-            renderNoticias();
-        }
-    } catch (e) {
-        console.error("No se pudieron cargar las noticias:", e);
-    }
-})();
-
-const YO = "Carlos Mendoza";
-
-const cumpleHoy = { nombre: "Laura Gómez", depto: "Recursos Humanos" };
-
-const proximosCumples = [
-    { nombre: "Roberto Fuentes",  depto: "Operaciones", dias: 3 },
-    { nombre: "Sofía Pacheco",    depto: "Ventas",      dias: 7 },
-    { nombre: "Miguel Hernández", depto: "Tecnología",  dias: 12 },
-];
-
-const otrasPersonas = ["Ana Ríos", "Jorge Palacios"];
-
-const felicitaciones = [
-    { de: "Ana Ríos",       para: "Laura Gómez",     cuando: "Hoy",         mensaje: "¡Feliz cumpleaños Laura! Que tengas un día increíble." },
-    { de: "Jorge Palacios", para: "Laura Gómez",     cuando: "Hoy",         mensaje: "¡Muchas felicidades! Un gusto trabajar contigo." },
-    { de: "Carlos Mendoza", para: "Roberto Fuentes", cuando: "Hace 3 días", mensaje: "¡Felicidades Roberto! Espero que lo pases muy bien." },
-];
-
-let noticias = [
-    { tipo: "Evento", clase: "tag-evento", titulo: "Evento de integración Q3 — confirma tu asistencia", fecha: "01 Sep 2026", abierta: true,
-      cuerpo: "El próximo 13 de septiembre realizaremos nuestro evento trimestral de integración en las instalaciones de Eslabón. Habrá dinámicas, comida y actividades de equipo. Confirma tu participación antes del 5 de septiembre." },
-    { tipo: "Comunicado", clase: "tag-comunicado", titulo: "Nueva política de trabajo híbrido — vigente a partir de octubre", fecha: "28 Ago 2026", abierta: false,
-      cuerpo: "A partir de octubre se aplicará el nuevo esquema de trabajo híbrido. Consulta con tu supervisor los días de asistencia presencial que te corresponden." },
-    { tipo: "Reconocimiento", clase: "tag-reconocimiento", titulo: "Reconocimiento al equipo de Tecnología — Q2 2026", fecha: "15 Ago 2026", abierta: false,
-      cuerpo: "Felicitamos al equipo de Tecnología por el cumplimiento de sus objetivos durante el segundo trimestre de 2026." },
-    { tipo: "Capacitación", clase: "tag-capacitacion-rosa", titulo: "Apertura de inscripciones — programa de capacitación Q4", fecha: "10 Ago 2026", abierta: false,
-      cuerpo: "Ya están abiertas las inscripciones para los cursos del último trimestre del año. Regístrate desde tu portal antes de que se llenen los lugares." },
-    { tipo: "Beneficio", clase: "tag-beneficio", titulo: "Beneficio escolar 2026-2027 — apoyo de útiles para hijos de empleados", fecha: "05 Ago 2026", abierta: false,
-      cuerpo: "Los empleados con hijos en edad escolar pueden solicitar el apoyo de útiles. Entrega tu solicitud en Recursos Humanos." },
-];
-
-let fechasEspeciales = [
+// Fechas especiales iniciales: comunidad-admin.js las usa para sembrar la pestaña de fechas
+const fechasEspeciales = [
     { titulo: "Aniversario de la empresa", fecha: "15 Sep 2026", texto: "12 años de Desarrollo Eslabón. Celebramos juntos." },
     { titulo: "Día de la Independencia",   fecha: "16 Sep 2026", texto: "Día de descanso oficial. Que disfrutes el día." },
     { titulo: "Evento de integración Q3",  fecha: "13 Sep 2026", texto: "Evento presencial. Confirma tu asistencia antes del 5 de septiembre." },
     { titulo: "Cierre de nómina Sep",      fecha: "25 Sep 2026", texto: "Fecha límite de captura de incidencias." },
 ];
 
-const iniciales = (n) => n.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
-const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+(function () {
+const $ = (id) => document.getElementById(id);
+const MES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const fechaBonita = (iso) => { const [a, m, d] = String(iso || "").slice(0, 10).split("-"); return a ? `${d} ${MES[Number(m) - 1]} ${a}` : ""; };
+const iniciales = (n) => String(n || "").split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const corto = (n) => String(n || "").split(/\s+/).slice(0, 2).join(" ");
 
-const modalEl = document.getElementById("modalFelicitacion");
-const modalFel = new bootstrap.Modal(modalEl);
-const destinatario = document.getElementById("destinatario");
-const mensajeFel = document.getElementById("mensajeFel");
-const btnEnviarFel = document.getElementById("btnEnviarFel");
+const cuando = (min) => {
+    if (min < 1) return "Ahora";
+    if (min < 60) return `Hace ${min} min`;
+    if (min < 1440) return `Hace ${Math.floor(min / 60)} h`;
+    const d = Math.floor(min / 1440);
+    return d === 1 ? "Ayer" : `Hace ${d} días`;
+};
 
-[cumpleHoy.nombre, ...proximosCumples.map((p) => p.nombre), ...otrasPersonas].forEach((n) => {
-    destinatario.add(new Option(n, n));
-});
+const CLASE_CATEGORIA = {
+    "Comunicado": "tag-comunicado",
+    "Evento": "tag-evento",
+    "Reconocimiento": "tag-reconocimiento",
+    "Capacitación": "tag-capacitacion-rosa",
+    "Beneficio": "tag-beneficio",
+};
 
-function abrirFelicitar(nombre) {
-    destinatario.value = nombre || cumpleHoy.nombre;
+/* ============================ CUMPLEAÑOS Y FELICITACIONES ============================ */
+const modalFel = new bootstrap.Modal($("modalFelicitacion"));
+const destinatario = $("destinatario");
+const mensajeFel = $("mensajeFel");
+const btnEnviarFel = $("btnEnviarFel");
+const muro = $("muroFelicitaciones");
+let datos = { cumpleHoy: [], proximos: [], companeros: [], felicitaciones: [] };
+
+function abrirFelicitar(id) {
+    if (!datos.companeros.length) return alert("No hay compañeros a quién felicitar.");
+    destinatario.value = String(id || destinatario.options[0].value);
     mensajeFel.value = "";
     btnEnviarFel.disabled = true;
     modalFel.show();
@@ -80,165 +50,160 @@ mensajeFel.addEventListener("input", () => {
     btnEnviarFel.disabled = mensajeFel.value.trim() === "";
 });
 
-btnEnviarFel.addEventListener("click", () => {
-    felicitaciones.unshift({
-        de: YO,
-        para: destinatario.value,
-        cuando: "Ahora",
-        mensaje: mensajeFel.value.trim(),
-    });
-    renderMuro();
-    modalFel.hide();
+btnEnviarFel.addEventListener("click", async () => {
+    btnEnviarFel.disabled = true;
+    try {
+        const r = await api("/felicitaciones", {
+            method: "POST",
+            body: { para: Number(destinatario.value), mensaje: mensajeFel.value.trim() },
+        });
+        modalFel.hide();
+        await cargarComunidad();
+        avisoMuro(r.puntos ? `¡Felicitación enviada! Ganaste +${r.puntos} pts` : "¡Felicitación enviada!");
+    } catch (e) {
+        alert(e.mensaje || "No se pudo enviar la felicitación.");
+        btnEnviarFel.disabled = false;
+    }
 });
 
-document.getElementById("btnNuevaFel").addEventListener("click", () => abrirFelicitar());
-document.getElementById("btnFelicitarHoy").addEventListener("click", () => abrirFelicitar(cumpleHoy.nombre));
+function avisoMuro(texto) {
+    const a = document.createElement("div");
+    a.className = "alert alert-success py-2 small";
+    a.textContent = texto;
+    muro.before(a);
+    setTimeout(() => a.remove(), 4000);
+}
 
-document.getElementById("cumpleHoyTitulo").textContent = `${cumpleHoy.nombre} cumple años hoy`;
-document.getElementById("cumpleHoyDepto").textContent = cumpleHoy.depto;
+$("btnNuevaFel").addEventListener("click", () => abrirFelicitar());
 
-const proximosCont = document.getElementById("proximosCumples");
-proximosCumples.forEach((p) => {
-    const col = document.createElement("div");
-    col.className = "col-md-4";
-    col.innerHTML = `
-        <div class="panel">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="avatar-circle avatar-lg">${iniciales(p.nombre)}</div>
-                <div>
-                    <div class="fw-semibold">${p.nombre}</div>
-                    <small class="text-secondary">${p.depto}</small>
+function pintarBanner() {
+    const hoy = datos.cumpleHoy;
+    const btn = $("btnFelicitarHoy");
+    const banner = btn.closest(".banner-cumple");
+    const etiqueta = banner.querySelector("small");
+
+    if (hoy.length) {
+        const nombres = hoy.map((p) => p.esYo ? "¡Tú!" : corto(p.nombre));
+        const soyYo = hoy.length === 1 && hoy[0].esYo;
+        etiqueta.textContent = "Hoy celebramos";
+        $("cumpleHoyTitulo").textContent = soyYo
+            ? "¡Feliz cumpleaños! 🎂"
+            : `${nombres.join(" y ")} cumple${hoy.length > 1 ? "n" : ""} años hoy`;
+        $("cumpleHoyDepto").textContent = hoy.map((p) => p.depto).filter(Boolean).join(" · ");
+        const aQuien = hoy.find((p) => !p.esYo);
+        btn.classList.toggle("d-none", !aQuien);
+        btn.onclick = () => abrirFelicitar(aQuien?.id);
+    } else if (datos.proximos.length) {
+        const p = datos.proximos[0];
+        etiqueta.textContent = "Próximo cumpleaños";
+        $("cumpleHoyTitulo").textContent = `${p.esYo ? "¡El tuyo!" : corto(p.nombre)} en ${p.dias} día${p.dias === 1 ? "" : "s"}`;
+        $("cumpleHoyDepto").textContent = p.depto;
+        btn.classList.toggle("d-none", p.esYo);
+        btn.onclick = () => abrirFelicitar(p.id);
+    } else {
+        etiqueta.textContent = "Cumpleaños";
+        $("cumpleHoyTitulo").textContent = "Sin cumpleaños próximos";
+        $("cumpleHoyDepto").textContent = "";
+        btn.classList.add("d-none");
+    }
+}
+
+function pintarProximos() {
+    const cont = $("proximosCumples");
+    cont.innerHTML = datos.proximos.length ? "" : `<p class="text-secondary">No hay cumpleaños próximos registrados.</p>`;
+    datos.proximos.forEach((p) => {
+        const col = document.createElement("div");
+        col.className = "col-md-4";
+        col.innerHTML = `
+            <div class="panel">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="avatar-circle avatar-lg">${esc(iniciales(p.nombre))}</div>
+                    <div>
+                        <div class="fw-semibold">${esc(corto(p.nombre))}${p.esYo ? ' <small class="text-secondary">(tú)</small>' : ""}</div>
+                        <small class="text-secondary">${esc(p.depto)}</small>
+                    </div>
                 </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="pill-dias">En ${p.dias} días</span>
-                <button class="btn btn-link btn-sm p-0 enlace-portal">Felicitar</button>
-            </div>
-        </div>
-    `;
-    col.querySelector("button").addEventListener("click", () => abrirFelicitar(p.nombre));
-    proximosCont.appendChild(col);
-});
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="pill-dias">${p.dias === 1 ? "Mañana" : `En ${p.dias} días`}</span>
+                    ${p.esYo ? "" : `<button class="btn btn-link btn-sm p-0 enlace-portal">Felicitar</button>`}
+                </div>
+            </div>`;
+        col.querySelector("button")?.addEventListener("click", () => abrirFelicitar(p.id));
+        cont.appendChild(col);
+    });
+}
 
-const muro = document.getElementById("muroFelicitaciones");
-
-function renderMuro() {
-    muro.innerHTML = "";
-    felicitaciones.forEach((f) => {
+function pintarMuro() {
+    muro.innerHTML = datos.felicitaciones.length ? "" : `<p class="text-secondary">Aún no hay felicitaciones. ¡Sé el primero!</p>`;
+    datos.felicitaciones.forEach((f) => {
         const card = document.createElement("div");
         card.className = "panel mb-3";
         card.innerHTML = `
             <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="avatar-circle avatar-sm">${esc(f.de[0])}</div>
-                <span class="small fw-semibold">${esc(f.de)} → ${esc(f.para)}</span>
-                <small class="text-secondary">· ${esc(f.cuando)}</small>
+                <div class="avatar-circle avatar-sm">${esc(iniciales(f.de))}</div>
+                <span class="small fw-semibold">${esc(corto(f.de))}${f.mia ? " (tú)" : ""} → ${esc(corto(f.para))}</span>
+                <small class="text-secondary">· ${cuando(f.minutos)}</small>
             </div>
-            <div class="text-secondary">${esc(f.mensaje)}</div>
-        `;
+            <div class="text-secondary">${esc(f.mensaje)}</div>`;
         muro.appendChild(card);
     });
 }
-renderMuro();
-const listaNoticias = document.getElementById("listaNoticias");
+
+async function cargarComunidad() {
+    try {
+        datos = await api("/comunidad");
+        destinatario.innerHTML = "";
+        datos.companeros.forEach((c) => destinatario.add(new Option(`${c.nombre}${c.depto ? " — " + c.depto : ""}`, c.id)));
+        pintarBanner();
+        pintarProximos();
+        pintarMuro();
+    } catch (e) {
+        console.error(e);
+        if (e.status === 401) location.href = "index.html";
+    }
+}
+
+/* ============================ NOTICIAS (desde la BD) ============================ */
+const listaNoticias = $("listaNoticias");
+let noticias = [];
+const abiertas = new Set();
 
 function renderNoticias() {
-    listaNoticias.innerHTML = "";
+    listaNoticias.innerHTML = noticias.length ? "" : `<p class="text-secondary">No hay noticias publicadas.</p>`;
     noticias.forEach((n) => {
+        const abierta = abiertas.has(n.id);
         const card = document.createElement("div");
         card.className = "panel mb-3";
-
-        const fila = document.createElement("div");
-        fila.className = "d-flex align-items-center gap-3";
-
-        const tag = document.createElement("span");
-        tag.className = "tag-doc " + (n.clase || "tag-comunicado");
-        tag.textContent = n.tipo || "Noticia";
-
-        const titulo = document.createElement("span");
-        titulo.className = "fw-semibold flex-grow-1";
-        titulo.textContent = n.titulo;
-
-        const fecha = document.createElement("small");
-        fecha.className = "text-secondary numero text-nowrap";
-        fecha.textContent = n.fecha || "";
-
-        const boton = document.createElement("button");
-        boton.className = "btn btn-link btn-sm p-0 enlace-portal";
-        boton.textContent = n.abierta ? "Cerrar" : "Leer";
-        boton.addEventListener("click", () => {
-            n.abierta = !n.abierta;
+        card.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+                <span class="tag-doc ${CLASE_CATEGORIA[n.categoria] || "tag-comunicado"}">${esc(n.categoria || "Comunicado")}</span>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">${esc(n.titulo)}</div>
+                    ${n.resumen ? `<small class="text-secondary">${esc(n.resumen)}</small>` : ""}
+                </div>
+                <small class="text-secondary numero text-nowrap">${fechaBonita(n.fecha)}</small>
+                ${n.contenido ? `<button class="btn btn-link btn-sm p-0 enlace-portal">${abierta ? "Cerrar" : "Leer"}</button>` : ""}
+            </div>
+            ${abierta && n.contenido ? `<p class="text-secondary mt-3 mb-0" style="white-space:pre-line">${esc(n.contenido)}</p>` : ""}`;
+        card.querySelector("button")?.addEventListener("click", () => {
+            abierta ? abiertas.delete(n.id) : abiertas.add(n.id);
             renderNoticias();
         });
-
-        fila.append(tag, titulo, fecha, boton);
-        card.appendChild(fila);
-
-        if (n.abierta) {
-            const cuerpo = document.createElement("p");
-            cuerpo.className = "text-secondary mt-3 mb-0";
-            cuerpo.textContent = n.cuerpo;
-            card.appendChild(cuerpo);
-        }
         listaNoticias.appendChild(card);
     });
 }
-renderNoticias();
 
-const listaFechas = document.getElementById("listaFechas");
-
-function renderFechas() {
-    listaFechas.innerHTML = "";
-    fechasEspeciales.forEach((f) => {
-        const col = document.createElement("div");
-        col.className = "col-md-6";
-
-        const panel = document.createElement("div");
-        panel.className = "panel h-100";
-
-        const cab = document.createElement("div");
-        cab.className = "d-flex justify-content-between align-items-center mb-2";
-        const t = document.createElement("span");
-        t.className = "fw-semibold";
-        t.textContent = f.titulo;
-        const d = document.createElement("span");
-        d.className = "event-date numero";
-        d.textContent = f.fecha || "";
-        cab.append(t, d);
-
-        const texto = document.createElement("div");
-        texto.className = "text-secondary";
-        texto.textContent = f.texto;
-
-        panel.append(cab, texto);
-        col.appendChild(panel);
-        listaFechas.appendChild(col);
-    });
-}
-renderFechas();
-
-function fechaBonita(iso) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return iso || "";
-    const [a, m, d] = iso.split("-");
-    const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-    return `${d} ${meses[Number(m) - 1]} ${a}`;
-}
-
-(async function cargarDelServidor() {
+async function cargarNoticias() {
     try {
-        const lista = await api('/noticias');
-
-        if (Array.isArray(lista) && lista.length) {
-            noticias = lista.map((n, i) => ({
-                tipo: "Noticia",
-                clase: "tag-comunicado",
-                titulo: n.titulo,
-                fecha: fechaBonita(String(n.fecha || "").slice(0, 10)),
-                abierta: i === 0,
-                cuerpo: n.contenido || n.resumen || "",
-            }));
-            renderNoticias();
-        }
+        noticias = await api("/noticias");
+        if (noticias[0]) abiertas.add(noticias[0].id);
+        renderNoticias();
     } catch (e) {
         console.error("No se pudieron cargar las noticias:", e);
+        listaNoticias.innerHTML = `<p class="text-danger">No se pudieron cargar las noticias.</p>`;
     }
+}
+
+cargarComunidad();
+cargarNoticias();
 })();

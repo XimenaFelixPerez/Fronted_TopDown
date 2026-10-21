@@ -35,6 +35,8 @@ const mostrarError = (el, txt) => { el.textContent = txt; el.classList.toggle("d
 let empleados = [];
 let miId = null;
 let noticias = [];
+let solicitudes = [];
+let encuestas = [];
 
 /* ============================ EMPLEADOS ============================ */
 const empBody = $("empBody");
@@ -45,7 +47,6 @@ function pintarEmpleados() {
         !q || [e.Nombre, e.Correo, e.NumeroEmpleado].some((v) => String(v || "").toLowerCase().includes(q)));
 
     $("stActivos").textContent = empleados.filter((e) => e.Activo).length;
-    $("stBaja").textContent = empleados.filter((e) => !e.Activo).length;
 
     empBody.innerHTML = lista.length ? "" :
         `<tr><td colspan="6" class="text-center text-secondary py-4">No hay empleados que coincidan</td></tr>`;
@@ -112,6 +113,7 @@ function verEmpleado(e) {
                 ${fila("Rol", e.Rol === "admin" ? "Administrador" : "Empleado")}
                 ${fila("Estado", e.Activo ? "Activo" : "Dado de baja")}
                 ${fila("Fecha de ingreso", fecha(e.FechaIngreso))}
+                ${fila("Fecha de nacimiento", e.FechaNacimiento ? fecha(e.FechaNacimiento) : "")}
                 ${fila("Último acceso", e.UltimoAcceso ? `${fecha(e.UltimoAcceso)} ${hora(e.UltimoAcceso)}` : "Nunca")}
             </div>
             <div class="col-md-6">
@@ -144,7 +146,8 @@ $("btnGuardarEmp").addEventListener("click", async () => {
         await pedir("/admin/empleados", "POST", {
             nombre: $("eNombre").value, numero: $("eNumero").value,
             correo: $("eCorreo").value, contrasena: $("eContrasena").value, rol: $("eRol").value,
-            puesto: $("ePuesto").value, departamento: $("eDepto").value, fechaIngreso: $("eIngreso").value,
+            puesto: $("ePuesto").value, departamento: $("eDepto").value,
+            fechaIngreso: $("eIngreso").value, fechaNacimiento: $("eNacimiento").value,
             curp: $("eCurp").value, rfc: $("eRfc").value, nss: $("eNss").value,
             banco: $("eBanco").value, cuenta: $("eCuenta").value, salario: $("eSalario").value,
         });
@@ -189,10 +192,112 @@ $("btnDefinitivo").addEventListener("click", async () => {
     try {
         await pedir(`/admin/empleados/${aEliminar.UsuarioId}`, "DELETE");
         modalElim.hide();
-        await cargarEmpleados();
-        await cargarAccesos();
+        await Promise.all([cargarEmpleados(), cargarAccesos(), cargarSolicitudes()]);
     } catch (err) {
         mostrarError($("elimError"), err.message);
+    }
+});
+
+/* ============================ SOLICITUDES ============================ */
+const listaSol = $("listaSolicitudes");
+const modalRech = new bootstrap.Modal($("modalRechazo"));
+let filtroSol = "Pendiente";
+let aRechazar = null;
+
+const ESTILO_ESTADO = {
+    Pendiente: 'class="badge-status badge-pendiente"',
+    Autorizada: 'class="badge-status badge-autorizada"',
+    Rechazada: 'class="badge-status" style="background:#fde2e1;color:#b42318"',
+};
+
+function pintarSolicitudes() {
+    const pend = solicitudes.filter((s) => s.Estado === "Pendiente").length;
+    $("stSolPend").textContent = pend;
+    $("badgeSol").textContent = pend;
+    $("badgeSol").classList.toggle("d-none", !pend);
+    document.querySelectorAll("#filtroSol button").forEach((b) => b.classList.toggle("activo", b.dataset.f === filtroSol));
+
+    const lista = solicitudes.filter((s) => filtroSol === "todas" || s.Estado === filtroSol);
+    listaSol.innerHTML = lista.length ? "" :
+        `<div class="panel text-center text-secondary py-4">No hay solicitudes ${filtroSol === "todas" ? "" : filtroSol === "Pendiente" ? "pendientes" : filtroSol.toLowerCase() + "s"}</div>`;
+
+    lista.forEach((s) => {
+        const esVac = s.Tipo === "Vacaciones";
+        const saldo = esVac && s.Asignados != null
+            ? `Saldo ${s.Inicio.slice(0, 4)}: ${s.Asignados - s.Autorizados} de ${s.Asignados} días disponibles`
+            : "";
+        const card = document.createElement("div");
+        card.className = "panel mb-3";
+        card.innerHTML = `
+            <div class="d-flex align-items-start gap-3 flex-wrap">
+                <div class="avatar-circle avatar-lg">${esc(iniciales(s.Empleado))}</div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="fw-semibold">${esc(s.Empleado)}</span>
+                        <span class="folio">${esc(s.Folio)}</span>
+                        <span ${ESTILO_ESTADO[s.Estado]}>${esc(s.Estado)}</span>
+                    </div>
+                    <small class="text-secondary d-block">Emp. ${esc(s.NumeroEmpleado || "—")} · ${esc(s.Departamento || "")} · Recibida ${fecha(s.FechaSolicitud)}</small>
+                    <div class="mt-2">
+                        <span class="tag-doc ${esVac ? "tag-evento" : "tag-comunicado"} me-2">${esc(s.Tipo)}</span>
+                        ${esVac
+                            ? `<b>${fecha(s.Inicio)} al ${fecha(s.Fin)}</b> · ${s.Dias} días hábiles`
+                            : esc(s.Detalle || "")}
+                    </div>
+                    ${saldo ? `<small class="text-secondary d-block mt-1">${saldo}</small>` : ""}
+                    ${s.Comentario ? `<small class="d-block mt-1">Comentario: <span class="text-secondary">${esc(s.Comentario)}</span></small>` : ""}
+                    ${s.Estado === "Rechazada" ? `<small class="d-block mt-1 text-danger">Motivo: ${esc(s.MotivoRechazo)}</small>` : ""}
+                    ${s.Estado !== "Pendiente" ? `<small class="text-secondary d-block mt-1">Revisada por ${esc(s.RevisadoPor || "—")} el ${fecha(s.FechaRevision)}</small>` : ""}
+                </div>
+                ${s.Estado === "Pendiente" ? `
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger btn-sm" data-acc="rechazar">Rechazar</button>
+                    <button class="btn btn-portal text-white btn-sm" data-acc="autorizar">Autorizar</button>
+                </div>` : ""}
+            </div>`;
+        card.addEventListener("click", async (ev) => {
+            const acc = ev.target.closest("[data-acc]")?.dataset.acc;
+            if (acc === "autorizar") {
+                if (!confirm(`¿Autorizar la solicitud ${s.Folio} de ${s.Empleado}?`)) return;
+                try {
+                    await pedir(`/admin/solicitudes/${s.Id}`, "PATCH", { estado: "Autorizada" });
+                    await cargarSolicitudes();
+                } catch (err) { alert(err.message); }
+            }
+            if (acc === "rechazar") {
+                aRechazar = s;
+                $("rechFolio").textContent = s.Folio;
+                $("rechQuien").textContent = `${s.Empleado} · ${s.Tipo}${esVac ? ` (${fecha(s.Inicio)} al ${fecha(s.Fin)})` : ""}`;
+                $("rechMotivo").value = "";
+                mostrarError($("rechError"), "");
+                modalRech.show();
+            }
+        });
+        listaSol.appendChild(card);
+    });
+}
+
+async function cargarSolicitudes() {
+    solicitudes = (await pedir("/admin/solicitudes")).solicitudes;
+    pintarSolicitudes();
+}
+
+$("filtroSol").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-f]");
+    if (!b) return;
+    filtroSol = b.dataset.f;
+    pintarSolicitudes();
+});
+
+$("btnConfirmarRechazo").addEventListener("click", async () => {
+    const motivo = $("rechMotivo").value.trim();
+    if (!motivo) return mostrarError($("rechError"), "Escribe el motivo, el empleado lo verá en su notificación.");
+    try {
+        await pedir(`/admin/solicitudes/${aRechazar.Id}`, "PATCH", { estado: "Rechazada", motivo });
+        modalRech.hide();
+        await cargarSolicitudes();
+    } catch (err) {
+        mostrarError($("rechError"), err.message);
     }
 });
 
@@ -212,7 +317,7 @@ function pintarNoticias() {
             <div class="panel h-100 d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
-                        <span class="tag-doc tag-comunicado me-2">Noticia</span>
+                        <span class="tag-doc tag-comunicado me-2">${esc(n.Categoria || "Comunicado")}</span>
                         <small class="text-secondary">${n.Publicada ? "Publicada" : "Borrador"}</small>
                     </div>
                     <div class="d-flex gap-2">
@@ -247,6 +352,7 @@ function abrirNoticia(n) {
     $("notTitulo").textContent = n ? "Editar noticia" : "Publicar noticia";
     $("nTitulo").value = n?.Titulo || "";
     $("nFecha").value = n ? String(n.Fecha).slice(0, 10) : hoyISO();
+    $("nCategoria").value = n?.Categoria || "Comunicado";
     $("nEstado").value = n ? (n.Publicada ? "1" : "0") : "1";
     $("nResumen").value = n?.Resumen || "";
     $("nContenido").value = n?.Contenido || "";
@@ -259,6 +365,7 @@ $("btnGuardarNoticia").addEventListener("click", async () => {
     const datos = {
         titulo: $("nTitulo").value.trim(),
         fecha: $("nFecha").value,
+        categoria: $("nCategoria").value,
         publicada: $("nEstado").value === "1",
         resumen: $("nResumen").value.trim(),
         contenido: $("nContenido").value.trim(),
@@ -271,6 +378,121 @@ $("btnGuardarNoticia").addEventListener("click", async () => {
         await cargarNoticias();
     } catch (err) {
         mostrarError($("notError"), err.message);
+    }
+});
+
+/* ============================ ENCUESTAS ============================ */
+const listaEnc = $("listaEncuestasAdmin");
+const modalEncN = new bootstrap.Modal($("modalEncuestaNueva"));
+const modalRes = new bootstrap.Modal($("modalResultados"));
+
+function pintarEncuestas() {
+    listaEnc.innerHTML = encuestas.length ? "" : `<p class="text-secondary">Aún no hay encuestas.</p>`;
+    encuestas.forEach((e) => {
+        const pct = e.Empleados ? Math.round((e.Respuestas / e.Empleados) * 100) : 0;
+        const col = document.createElement("div");
+        col.className = "col-md-6";
+        col.innerHTML = `
+            <div class="panel h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="tag-doc tag-reconocimiento me-2">+${e.Puntos} pts</span>
+                        <small class="${e.Activa ? "texto-verde" : "text-secondary"}">${e.Activa ? "Activa" : "Inactiva"}</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-editar btn-sm" data-acc="resultados">Resultados</button>
+                        <button class="btn btn-editar btn-sm" data-acc="activar">${e.Activa ? "Desactivar" : "Activar"}</button>
+                    </div>
+                </div>
+                <div class="fw-semibold mb-1">${esc(e.Titulo)}</div>
+                <div class="text-secondary mb-3">${esc(e.Descripcion || "")}</div>
+                <div class="progress mb-2" style="height:6px"><div class="progress-bar" style="width:${pct}%;background:var(--portal-color)"></div></div>
+                <div class="d-flex justify-content-between text-secondary small border-top pt-2 mt-auto">
+                    <span>${e.Preguntas} preguntas · Cierra ${fecha(e.Cierre)}</span>
+                    <span>${e.Respuestas} respuestas (${pct}%)</span>
+                </div>
+            </div>`;
+        col.addEventListener("click", async (ev) => {
+            const acc = ev.target.closest("[data-acc]")?.dataset.acc;
+            if (acc === "activar") {
+                try { await pedir(`/admin/encuestas/${e.Id}`, "PATCH", { activa: !e.Activa }); await cargarEncuestas(); }
+                catch (err) { alert(err.message); }
+            }
+            if (acc === "resultados") verResultados(e);
+        });
+        listaEnc.appendChild(col);
+    });
+}
+
+async function cargarEncuestas() {
+    encuestas = (await pedir("/admin/encuestas")).encuestas;
+    pintarEncuestas();
+}
+
+async function verResultados(e) {
+    try {
+        const r = await pedir(`/admin/encuestas/${e.Id}/resultados`);
+        $("resTitulo").textContent = r.titulo;
+        $("resCuerpo").innerHTML = `<p class="text-secondary small">${r.respuestas} respuesta(s) · resultados anónimos</p>` +
+            r.preguntas.map((p) => {
+                let cuerpo;
+                if (!p.total) cuerpo = `<small class="text-secondary">Sin respuestas</small>`;
+                else if (p.tipo === "escala") cuerpo = `<div>Promedio: <b>${p.promedio.toFixed(1)}</b> / 5 <small class="text-secondary">(${p.total})</small></div>`;
+                else if (p.tipo === "texto") cuerpo = p.textos.map((t) => `<div class="small border-bottom py-1">${esc(t)}</div>`).join("");
+                else {
+                    const max = Math.max(1, ...Object.values(p.conteo));
+                    cuerpo = Object.entries(p.conteo).map(([k, n]) => `
+                        <div class="small mb-1">
+                            <div class="d-flex justify-content-between"><span>${esc(k)}</span><span class="numero">${n}</span></div>
+                            <div class="progress" style="height:5px"><div class="progress-bar" style="width:${(n / max) * 100}%;background:var(--portal-color)"></div></div>
+                        </div>`).join("");
+                }
+                return `<div class="mb-3"><div class="fw-semibold small mb-1">${esc(p.texto)}</div>${cuerpo}</div>`;
+            }).join("");
+        modalRes.show();
+    } catch (err) { alert(err.message); }
+}
+
+// "texto | tipo | opción; opción"  ->  { texto, tipo, opciones }
+function parsearPreguntas(txt) {
+    return txt.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+        const [texto, tipo = "texto", ops = ""] = l.split("|").map((x) => x.trim());
+        return {
+            texto,
+            tipo: ["escala", "opcion", "multiple", "texto"].includes(tipo) ? tipo : "texto",
+            opciones: ops.split(";").map((x) => x.trim()).filter(Boolean),
+        };
+    });
+}
+
+$("btnNuevaEncuesta").addEventListener("click", () => {
+    $("encTituloN").value = "";
+    $("encDescN").value = "";
+    $("encPuntosN").value = 50;
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    $("encCierreN").value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    $("encPregN").value = "";
+    mostrarError($("encErrorN"), "");
+    modalEncN.show();
+});
+
+$("btnGuardarEncuesta").addEventListener("click", async () => {
+    const btn = $("btnGuardarEncuesta");
+    btn.disabled = true;
+    try {
+        await pedir("/admin/encuestas", "POST", {
+            titulo: $("encTituloN").value.trim(),
+            descripcion: $("encDescN").value.trim(),
+            puntos: Number($("encPuntosN").value) || 0,
+            cierre: $("encCierreN").value,
+            preguntas: parsearPreguntas($("encPregN").value),
+        });
+        modalEncN.hide();
+        await cargarEncuestas();
+    } catch (err) {
+        mostrarError($("encErrorN"), err.message);
+    } finally {
+        btn.disabled = false;
     }
 });
 
@@ -295,7 +517,7 @@ async function cargarAccesos() {
     try {
         await pedir("/admin/yo");            // si no eres admin, el servidor responde 403 y te saca
         $("adminContenido").classList.remove("d-none");
-        await Promise.all([cargarEmpleados(), cargarNoticias(), cargarAccesos()]);
+        await Promise.all([cargarEmpleados(), cargarSolicitudes(), cargarNoticias(), cargarEncuestas(), cargarAccesos()]);
     } catch (err) {
         console.error(err);
     }

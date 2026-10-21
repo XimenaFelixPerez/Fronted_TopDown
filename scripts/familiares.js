@@ -1,23 +1,4 @@
-
-const familiares = [
-    { id: 1, nombreCompleto: "María Luisa Mendoza García", parentesco: "Cónyuge", curp: "MEGA900620MDFNRL02", nacimiento: "1990-06-20",
-      genero: "Femenino", estadoCivil: "Casado(a)", ocupacion: "Maestra", empresa: "SEP",
-      telefono: "55 9876 0011", telefonoRecado: "55 1234 9999", celular: "55 8765 4321",
-      dependiente: true, beneficiario: true, emergencia: true, vive: true, trabaja: false, discapacidad: false },
-    { id: 2, nombreCompleto: "Emilio Mendoza García", parentesco: "Hijo", curp: "MEGE150310HDFNRMA5", nacimiento: "2015-03-10",
-      genero: "Masculino", estadoCivil: "Soltero(a)", ocupacion: "Estudiante", empresa: "",
-      telefono: "55 9876 0011", telefonoRecado: "", celular: "",
-      dependiente: true, beneficiario: true, emergencia: false, vive: true, trabaja: false, discapacidad: false },
-    { id: 3, nombreCompleto: "Sofía Mendoza García", parentesco: "Hija", curp: "MEGS180922MDFNRFA1", nacimiento: "2018-09-22",
-      genero: "Femenino", estadoCivil: "Soltero(a)", ocupacion: "Estudiante", empresa: "",
-      telefono: "55 9876 0011", telefonoRecado: "", celular: "",
-      dependiente: true, beneficiario: false, emergencia: false, vive: true, trabaja: false, discapacidad: false },
-    { id: 4, nombreCompleto: "Roberto Castillo Ruiz", parentesco: "Padre", curp: "CARR620815HDFSZB04", nacimiento: "1962-08-15",
-      genero: "Masculino", estadoCivil: "Casado(a)", ocupacion: "Jubilado", empresa: "",
-      telefono: "55 4455 6677", telefonoRecado: "", celular: "55 3344 5566",
-      dependiente: false, beneficiario: false, emergencia: false, vive: false, trabaja: false, discapacidad: false },
-];
-
+(function () {
 const avisos = [
     { color: "azul", titulo: "Apoyo de útiles escolares 2026-2027", etiqueta: "Empleados con hijos en edad escolar",
       texto: "Si tienes hijos en educación básica (preescolar, primaria o secundaria), puedes solicitar un apoyo de $1,500 MXN en vales de compra escolar por hijo inscrito. Registra a tus hijos en RRHH antes del 20 de septiembre." },
@@ -30,7 +11,8 @@ const avisos = [
 const PARENTESCOS = ["Cónyuge", "Hijo", "Hija", "Padre", "Madre", "Hermano", "Hermana", "Otro"];
 const MESES_CORTO = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-let seleccionadoId = familiares[0].id;
+let familiares = [];
+let seleccionadoId = null;
 let editandoId = null;
 
 const pad = (n) => String(n).padStart(2, "0");
@@ -58,7 +40,8 @@ const detalleFamiliar = document.getElementById("detalleFamiliar");
 const contadorFam = document.getElementById("contadorFam");
 
 function renderLista() {
-    listaFamiliares.innerHTML = "";
+    listaFamiliares.innerHTML = familiares.length ? "" :
+        `<div class="panel text-secondary small">Aún no registras familiares. Usa “Agregar familiar”.</div>`;
 
     familiares.forEach((f) => {
         const corto = nombreCorto(f.nombreCompleto);
@@ -112,7 +95,10 @@ function renderDetalle() {
                     <small class="text-secondary">${esc(f.parentesco)}</small>
                 </div>
             </div>
-            <button class="btn btn-light btn-sm border" id="btnEditar">Editar</button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm border" id="btnEditar">Editar</button>
+                <button class="btn btn-outline-danger btn-sm" id="btnEliminarFam">Eliminar</button>
+            </div>
         </div>
 
         <div class="row gx-5">
@@ -144,6 +130,29 @@ function renderDetalle() {
     `;
 
     document.getElementById("btnEditar").addEventListener("click", () => abrirModal(f));
+    document.getElementById("btnEliminarFam").addEventListener("click", async () => {
+        if (!confirm(`¿Eliminar a ${f.nombreCompleto} de tus familiares?`)) return;
+        try {
+            await api(`/familiares/${f.id}`, { method: "DELETE" });
+            seleccionadoId = null;
+            await cargar();
+        } catch (e) {
+            alert(e.mensaje || "No se pudo eliminar.");
+        }
+    });
+}
+
+async function cargar(seleccionar) {
+    try {
+        familiares = (await api("/familiares")).familiares;
+        if (seleccionar) seleccionadoId = seleccionar;
+        if (!familiares.some((f) => f.id === seleccionadoId)) seleccionadoId = familiares[0]?.id ?? null;
+        renderLista();
+        renderDetalle();
+    } catch (e) {
+        console.error(e);
+        if (e.status === 401) location.href = "index.html";
+    }
 }
 
 const vistaAvisos = document.getElementById("vistaAvisos");
@@ -228,30 +237,31 @@ campos.nombreCompleto.addEventListener("input", () => {
     btnGuardarFam.disabled = campos.nombreCompleto.value.trim() === "";
 });
 
-btnGuardarFam.addEventListener("click", () => {
+btnGuardarFam.addEventListener("click", async () => {
     const datos = {};
     Object.keys(campos).forEach((k) => (datos[k] = campos[k].value.trim()));
     datos.curp = datos.curp.toUpperCase();
     Object.keys(checks).forEach((k) => (datos[k] = checks[k].checked));
 
-    if (editandoId) {
-        const f = familiares.find((x) => x.id === editandoId);
-        Object.assign(f, datos);
-        seleccionadoId = f.id;
-    } else {
-        const nuevo = { id: Date.now(), empresa: "", telefonoRecado: "", ...datos };
-        familiares.push(nuevo);
-        seleccionadoId = nuevo.id;
+    btnGuardarFam.disabled = true;
+    try {
+        let id = editandoId;
+        if (editandoId) {
+            await api(`/familiares/${editandoId}`, { method: "PUT", body: datos });
+        } else {
+            id = (await api("/familiares", { method: "POST", body: datos })).id;
+        }
+        modalFam.hide();
+        await cargar(id);
+        document.querySelector('.segmentado button[data-vista="familiares"]').click();
+    } catch (e) {
+        alert(e.mensaje || "No se pudo guardar.");
+    } finally {
+        btnGuardarFam.disabled = false;
     }
-
-    renderLista();
-    renderDetalle();
-    modalFam.hide();
-
-    document.querySelector('.segmentado button[data-vista="familiares"]').click();
 });
 
 document.getElementById("btnAgregar").addEventListener("click", () => abrirModal());
 
-renderLista();
-renderDetalle();
+cargar();
+})();

@@ -114,13 +114,13 @@
                     <div>
                         <span class="tag-doc tag-reconocimiento">Administrador</span>
                         <h2 class="fw-bold mt-2 mb-1">Centro de administración</h2>
-                        <p class="text-secondary mb-0">Empleados, noticias y registro de accesos.</p>
+                        <p class="text-secondary mb-0">Empleados, solicitudes, noticias, encuestas y registro de accesos.</p>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-3 col-6"><div class="card-stat"><small class="text-secondary">Empleados activos</small><div class="stat-value text-dark" id="stActivos">0</div></div></div>
-                    <div class="col-md-3 col-6"><div class="card-stat"><small class="text-secondary">Dados de baja</small><div class="stat-value text-dark" id="stBaja">0</div></div></div>
+                    <div class="col-md-3 col-6"><div class="card-stat"><small class="text-secondary">Solicitudes pendientes</small><div class="stat-value text-dark" id="stSolPend">0</div></div></div>
                     <div class="col-md-3 col-6"><div class="card-stat"><small class="text-secondary">Noticias publicadas</small><div class="stat-value text-dark" id="stNoticias">0</div></div></div>
                     <div class="col-md-3 col-6"><div class="card-stat"><small class="text-secondary">Accesos registrados</small><div class="stat-value text-dark" id="stAccesos">0</div></div></div>
                 </div>
@@ -130,7 +130,13 @@
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-empleados" type="button">Empleados</button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-solicitudes" type="button">Solicitudes <span class="badge-new d-none" id="badgeSol"></span></button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-noticias" type="button">Noticias</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-encuestas" type="button">Encuestas</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-accesos" type="button">Registro de accesos</button>
@@ -164,6 +170,23 @@
                         </div>
                     </div>
 
+                    <!-- SOLICITUDES -->
+                    <div class="tab-pane fade" id="tab-solicitudes">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Solicitudes de empleados</h6>
+                                <small class="text-secondary">Vacaciones y actualización de datos. El empleado recibe una notificación con tu respuesta.</small>
+                            </div>
+                            <div class="segmentado" id="filtroSol">
+                                <button type="button" class="activo" data-f="Pendiente">Pendientes</button>
+                                <button type="button" data-f="Autorizada">Autorizadas</button>
+                                <button type="button" data-f="Rechazada">Rechazadas</button>
+                                <button type="button" data-f="todas">Todas</button>
+                            </div>
+                        </div>
+                        <div id="listaSolicitudes"></div>
+                    </div>
+
                     <!-- NOTICIAS -->
                     <div class="tab-pane fade" id="tab-noticias">
                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -176,6 +199,20 @@
                             </button>
                         </div>
                         <div class="row g-3" id="listaNoticiasAdmin"></div>
+                    </div>
+
+                    <!-- ENCUESTAS -->
+                    <div class="tab-pane fade" id="tab-encuestas">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Encuestas</h6>
+                                <small class="text-secondary">Aparecen en Mi Desempeño &gt; Encuestas. Al responder, el empleado gana los puntos.</small>
+                            </div>
+                            <button class="btn btn-portal text-white fw-semibold" id="btnNuevaEncuesta">
+                                <i class="bi bi-plus-lg"></i> Nueva encuesta
+                            </button>
+                        </div>
+                        <div class="row g-3" id="listaEncuestasAdmin"></div>
                     </div>
 
                     <!-- ACCESOS -->
@@ -233,6 +270,7 @@
                         <div class="col-md-4"><label class="form-label small mb-1" for="ePuesto">Puesto</label><input class="form-control" id="ePuesto" required maxlength="100"></div>
                         <div class="col-md-4"><label class="form-label small mb-1" for="eDepto">Departamento</label><input class="form-control" id="eDepto" required maxlength="100"></div>
                         <div class="col-md-4"><label class="form-label small mb-1" for="eIngreso">Fecha de ingreso</label><input type="date" class="form-control" id="eIngreso" required></div>
+                        <div class="col-md-4"><label class="form-label small mb-1" for="eNacimiento">Fecha de nacimiento <small class="text-secondary">(opcional)</small></label><input type="date" class="form-control" id="eNacimiento"></div>
                         <div class="col-md-5"><label class="form-label small mb-1" for="eCurp">CURP</label><input class="form-control text-uppercase" id="eCurp" required maxlength="18"></div>
                         <div class="col-md-4"><label class="form-label small mb-1" for="eRfc">RFC</label><input class="form-control text-uppercase" id="eRfc" required maxlength="13"></div>
                         <div class="col-md-3"><label class="form-label small mb-1" for="eNss">NSS</label><input class="form-control" id="eNss" required maxlength="11"></div>
@@ -288,8 +326,12 @@
                     <h6 class="fw-bold mb-3" id="notTitulo">Publicar noticia</h6>
                     <div class="row g-3">
                         <div class="col-12"><label class="form-label small mb-1" for="nTitulo">Título</label><input class="form-control" id="nTitulo" maxlength="200"></div>
-                        <div class="col-6"><label class="form-label small mb-1" for="nFecha">Fecha</label><input type="date" class="form-control" id="nFecha"></div>
-                        <div class="col-6"><label class="form-label small mb-1" for="nEstado">Estado</label>
+                        <div class="col-4"><label class="form-label small mb-1" for="nFecha">Fecha</label><input type="date" class="form-control" id="nFecha"></div>
+                        <div class="col-4"><label class="form-label small mb-1" for="nCategoria">Categoría</label>
+                            <select class="form-select" id="nCategoria">
+                                <option>Comunicado</option><option>Evento</option><option>Reconocimiento</option><option>Capacitación</option><option>Beneficio</option>
+                            </select></div>
+                        <div class="col-4"><label class="form-label small mb-1" for="nEstado">Estado</label>
                             <select class="form-select" id="nEstado"><option value="1">Publicada</option><option value="0">Borrador</option></select></div>
                         <div class="col-12"><label class="form-label small mb-1" for="nResumen">Resumen (opcional)</label><input class="form-control" id="nResumen" maxlength="300"></div>
                         <div class="col-12"><label class="form-label small mb-1" for="nContenido">Contenido</label><textarea class="form-control" id="nContenido" rows="5"></textarea></div>
@@ -300,6 +342,65 @@
                         <button class="btn btn-portal text-white fw-semibold" id="btnGuardarNoticia">Guardar</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: rechazar solicitud -->
+    <div class="modal fade" id="modalRechazo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-2">
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-1">Rechazar solicitud <span class="folio" id="rechFolio"></span></h6>
+                    <small class="text-secondary d-block mb-3" id="rechQuien"></small>
+                    <label class="form-label small mb-1" for="rechMotivo">Motivo del rechazo (lo verá el empleado)</label>
+                    <textarea class="form-control" id="rechMotivo" rows="3" maxlength="500" placeholder="Ej. Es semana de cierre, elige otra fecha."></textarea>
+                    <p class="text-danger small mt-2 mb-0 d-none" id="rechError"></p>
+                    <div class="d-flex justify-content-end align-items-center gap-3 mt-3">
+                        <button class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-danger fw-semibold" id="btnConfirmarRechazo">Rechazar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: nueva encuesta -->
+    <div class="modal fade" id="modalEncuestaNueva" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content p-2">
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3">Nueva encuesta</h6>
+                    <div class="row g-3">
+                        <div class="col-md-8"><label class="form-label small mb-1" for="encTituloN">Título</label><input class="form-control" id="encTituloN" maxlength="150"></div>
+                        <div class="col-md-2"><label class="form-label small mb-1" for="encPuntosN">Puntos</label><input type="number" min="0" max="500" class="form-control" id="encPuntosN" value="50"></div>
+                        <div class="col-md-2"><label class="form-label small mb-1" for="encCierreN">Cierra</label><input type="date" class="form-control" id="encCierreN"></div>
+                        <div class="col-12"><label class="form-label small mb-1" for="encDescN">Descripción</label><input class="form-control" id="encDescN" maxlength="300"></div>
+                        <div class="col-12">
+                            <label class="form-label small mb-1" for="encPregN">Preguntas (una por línea)</label>
+                            <textarea class="form-control" id="encPregN" rows="6" placeholder="¿Cómo calificas tu área? | escala&#10;¿Cómo es la comunicación? | opcion | Buena; Regular; Mala&#10;¿Qué mejorarías? | multiple | Horarios; Herramientas&#10;Comentarios | texto"></textarea>
+                            <small class="text-secondary">Formato: <b>pregunta | tipo | opciones separadas por ;</b> — tipos: escala (1 a 5), opcion, multiple, texto. Las de texto son opcionales.</small>
+                        </div>
+                    </div>
+                    <p class="text-danger small mt-3 mb-0 d-none" id="encErrorN"></p>
+                    <div class="d-flex justify-content-end align-items-center gap-3 mt-3">
+                        <button class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-portal text-white fw-semibold" id="btnGuardarEncuesta">Publicar encuesta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: resultados de encuesta -->
+    <div class="modal fade" id="modalResultados" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resTitulo"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="resCuerpo"></div>
             </div>
         </div>
     </div>
